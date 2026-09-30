@@ -1,0 +1,47 @@
+// src/lib/layout/types.ts
+
+// 플레이그라운드 상태의 "모양"을 정의하는 type 모음
+// - Flex / Grid 속성에 들어갈 수 있는 값들을 유니언 타입으로 제한
+// - 전체 상태(PlaygroundState) 구조 정의
+// 런타임 코드는 없고 컴파일 타임 검사용
+export type LayoutMode = "flex" | "grid";
+
+export type FlexDirection = "row" | "row-reverse" | "column" | "column-reverse";
+export type FlexWrap = "nowrap" | "wrap" | "wrap-reverse";
+export type JustifyContent =
+  | "flex-start"
+  | "flex-end"
+  | "center"
+  | "space-between"
+  | "space-around"
+  | "space-evenly";
+export type FlexAlignItems =
+  | "stretch"
+  | "flex-start"
+  | "flex-end"
+  | "center"
+  | "baseline";
+export type GridAlign = "stretch" | "start" | "end" | "center";
+
+export interface FlexSettings {
+  direction: FlexDirection;
+  wrap: FlexWrap;
+  justifyContent: JustifyContent;
+  alignItems: FlexAlignItems;
+  gap: number;
+}
+
+export interface GridSettings {
+  columns: number;
+  rows: number;
+  gap: number;
+  justifyItems: GridAlign;
+  alignItems: GridAlign;
+}
+
+export interface PlaygroundState {
+  mode: LayoutMode;
+  boxCount: number;
+  flex: FlexSettings;
+  grid: GridSettings;
+}
