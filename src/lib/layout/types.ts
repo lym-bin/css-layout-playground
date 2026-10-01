@@ -1,7 +1,7 @@
 // src/lib/layout/types.ts
-
 // 플레이그라운드 상태의 "모양"을 정의하는 type 모음
 // - Flex / Grid 속성에 들어갈 수 있는 값들을 유니언 타입으로 제한
+// Grid 열/행은 "종류에 따라 필요한 값이 달라서 판별 유니언으로 표현"
 // - 전체 상태(PlaygroundState) 구조 정의
 // 런타임 코드는 없고 컴파일 타임 검사용
 export type LayoutMode = "flex" | "grid";
@@ -23,6 +23,16 @@ export type FlexAlignItems =
   | "baseline";
 export type GridAlign = "stretch" | "start" | "end" | "center";
 
+export type GridColumns =
+  | { kind: "count"; count: number }
+  | { kind: "auto-fill"; minWidth: number }
+  | { kind: "auto-fit"; minWidth: number }
+  | { kind: "custom"; template: string };
+
+export type GridColumnsKind = GridColumns["kind"];
+export type GridRows = { kind: "count"; count: number } | { kind: "auto" };
+export type GridRowsKind = GridRows["kind"];
+
 export interface FlexSettings {
   direction: FlexDirection;
   wrap: FlexWrap;
@@ -32,8 +42,8 @@ export interface FlexSettings {
 }
 
 export interface GridSettings {
-  columns: number;
-  rows: number;
+  columns: GridColumns;
+  rows: GridRows;
   gap: number;
   justifyItems: GridAlign;
   alignItems: GridAlign;

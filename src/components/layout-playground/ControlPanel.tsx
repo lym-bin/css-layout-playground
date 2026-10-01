@@ -8,10 +8,14 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import {
+  DEFAULT_GRID_COLUMNS,
+  DEFAULT_GRID_ROWS,
   FLEX_ALIGN_ITEMS,
   FLEX_DIRECTIONS,
   FLEX_WRAPS,
   GRID_ALIGNS,
+  GRID_COLUMNS_KINDS,
+  GRID_ROWS_KINDS,
   INITIAL_STATE,
   JUSTIFY_CONTENTS,
   LIMITS,
@@ -24,8 +28,13 @@ import type {
 } from "@/lib/layout/types";
 import RangeControl from "./controls/RangeControl";
 import SelectControl from "./controls/SelectControl";
+import TextControl from "./controls/TextControl";
 
 const MODES: readonly LayoutMode[] = ["flex", "grid"];
+
+// 서버에서 미리 렌더링할 때는 CSS 객체가 없으므로 통과시킨다.
+const isValidColumnsTemplate = (template: string) =>
+  typeof CSS === "undefined" || CSS.supports("grid-template-columns", template);
 
 interface ControlPanelProps {
   state: PlaygroundState;
@@ -43,6 +52,7 @@ export default function ControlPanel({ state, setState }: ControlPanelProps) {
     value: GridSettings[K],
   ) => setState((s) => ({ ...s, grid: { ...s.grid, [key]: value } }));
 
+  const { columns, rows } = state.grid;
   return (
     <aside className="flex flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
@@ -108,20 +118,64 @@ export default function ControlPanel({ state, setState }: ControlPanelProps) {
         </>
       ) : (
         <>
-          <RangeControl
-            label="columns"
-            value={state.grid.columns}
-            min={LIMITS.columns.min}
-            max={LIMITS.columns.max}
-            onChange={(v) => setGrid("columns", v)}
+          <SelectControl
+            label="grid-template-columns"
+            value={columns.kind}
+            options={GRID_COLUMNS_KINDS}
+            onChange={(kind) => setGrid("columns", DEFAULT_GRID_COLUMNS[kind])}
           />
-          <RangeControl
-            label="rows"
-            value={state.grid.rows}
-            min={LIMITS.rows.min}
-            max={LIMITS.rows.max}
-            onChange={(v) => setGrid("rows", v)}
+          {columns.kind === "count" && (
+            <RangeControl
+              label="columns"
+              value={columns.count}
+              min={LIMITS.columns.min}
+              max={LIMITS.columns.max}
+              onChange={(count) => setGrid("columns", { kind: "count", count })}
+            />
+          )}
+          {(columns.kind === "auto-fill" || columns.kind === "auto-fit") && (
+            <RangeControl
+              label="min width"
+              unit="px"
+              value={columns.minWidth}
+              min={LIMITS.minWidth.min}
+              max={LIMITS.minWidth.max}
+              onChange={(minWidth) =>
+                setGrid("columns", { ...columns, minWidth })
+              }
+            />
+          )}
+          {columns.kind === "custom" && (
+            <TextControl
+              label="template"
+              value={columns.template}
+              placeholder="200px 1fr"
+              error={
+                isValidColumnsTemplate(columns.template)
+                  ? undefined
+                  : "유효하지 않는 값이라 브라우저가 무시합니다"
+              }
+              onChange={(template) =>
+                setGrid("columns", { kind: "custom", template })
+              }
+            />
+          )}
+
+          <SelectControl
+            label="grid-template-rows"
+            value={rows.kind}
+            options={GRID_ROWS_KINDS}
+            onChange={(kind) => setGrid("rows", DEFAULT_GRID_ROWS[kind])}
           />
+          {rows.kind === "count" && (
+            <RangeControl
+              label="rows"
+              value={rows.count}
+              min={LIMITS.rows.min}
+              max={LIMITS.rows.max}
+              onChange={(count) => setGrid("rows", { kind: "count", count })}
+            />
+          )}
           <SelectControl
             label="justify-items"
             value={state.grid.justifyItems}

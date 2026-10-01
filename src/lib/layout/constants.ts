@@ -11,6 +11,10 @@ import type {
   FlexDirection,
   FlexWrap,
   GridAlign,
+  GridColumns,
+  GridColumnsKind,
+  GridRows,
+  GridRowsKind,
   JustifyContent,
   PlaygroundState,
 } from "./types";
@@ -51,6 +55,28 @@ export const GRID_ALIGNS: readonly GridAlign[] = [
   "end",
   "center",
 ];
+
+export const GRID_COLUMNS_KINDS: readonly GridColumnsKind[] = [
+  "count",
+  "auto-fill",
+  "auto-fit",
+  "custom",
+];
+
+export const GRID_ROWS_KINDS: readonly GridRowsKind[] = ["count", "auto"];
+
+// 드롭다운에서 종류를 바꿨을 때 들어갈 기본 값
+export const DEFAULT_GRID_COLUMNS: Record<GridColumnsKind, GridColumns> = {
+  count: { kind: "count", count: 3 },
+  "auto-fill": { kind: "auto-fill", minWidth: 120 },
+  "auto-fit": { kind: "auto-fit", minWidth: 120 },
+  custom: { kind: "custom", template: "200px 1fr" },
+};
+
+export const DEFAULT_GRID_ROWS: Record<GridRowsKind, GridRows> = {
+  count: { kind: "count", count: 2 },
+  auto: { kind: "auto" },
+};
 // 슬라이더 최솟값과 최댓값
 // as const로 설정값 명시
 export const LIMITS = {
@@ -58,6 +84,7 @@ export const LIMITS = {
   gap: { min: 0, max: 48 },
   columns: { min: 1, max: 6 },
   rows: { min: 1, max: 4 },
+  minWidth: { min: 60, max: 240 },
 } as const;
 
 export const INITIAL_STATE: PlaygroundState = {
@@ -71,8 +98,8 @@ export const INITIAL_STATE: PlaygroundState = {
     gap: 12,
   },
   grid: {
-    columns: 3,
-    rows: 2,
+    columns: DEFAULT_GRID_COLUMNS.count,
+    rows: DEFAULT_GRID_ROWS.count,
     gap: 12,
     justifyItems: "stretch",
     alignItems: "stretch",
