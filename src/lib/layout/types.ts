@@ -4,6 +4,7 @@
 // Grid 열/행은 "종류에 따라 필요한 값이 달라서 판별 유니언으로 표현"
 // - 전체 상태(PlaygroundState) 구조 정의
 // 런타임 코드는 없고 컴파일 타임 검사용
+// - 박스별 개별 속성(ItemSettings) 정의
 export type LayoutMode = "flex" | "grid";
 
 export type FlexDirection = "row" | "row-reverse" | "column" | "column-reverse";
@@ -32,6 +33,9 @@ export type GridColumns =
 export type GridColumnsKind = GridColumns["kind"];
 export type GridRows = { kind: "count"; count: number } | { kind: "auto" };
 export type GridRowsKind = GridRows["kind"];
+export type FlexAlignSelf = "auto" | FlexAlignItems;
+export type GridItemColumn = { kind: "span"; span: number } | { kind: "full" };
+export type GridItemColumnKind = GridItemColumn["kind"];
 
 export interface FlexSettings {
   direction: FlexDirection;
@@ -48,10 +52,23 @@ export interface GridSettings {
   justifyItems: GridAlign;
   alignItems: GridAlign;
 }
-
+export interface FlexItemSettings {
+  grow: number;
+  alignSelf: FlexAlignSelf;
+}
+export interface GridItemSettings {
+  column: GridItemColumn;
+  rowSpan: number;
+}
+// 박스 하나의 개별속성. 모드를 바꿔도 각 모드 설정이 남도록 둘 다 보관.
+export interface ItemSettings {
+  flex: FlexItemSettings;
+  grid: GridItemSettings;
+}
 export interface PlaygroundState {
   mode: LayoutMode;
   boxCount: number;
   flex: FlexSettings;
   grid: GridSettings;
+  items: ItemSettings[];
 }

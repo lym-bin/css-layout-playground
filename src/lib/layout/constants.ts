@@ -8,13 +8,17 @@
 // 타입만 가져오기
 import type {
   FlexAlignItems,
+  FlexAlignSelf,
   FlexDirection,
   FlexWrap,
   GridAlign,
   GridColumns,
   GridColumnsKind,
+  GridItemColumn,
+  GridItemColumnKind,
   GridRows,
   GridRowsKind,
+  ItemSettings,
   JustifyContent,
   PlaygroundState,
 } from "./types";
@@ -48,6 +52,10 @@ export const FLEX_ALIGN_ITEMS: readonly FlexAlignItems[] = [
   "center",
   "baseline",
 ];
+export const FLEX_ALIGN_SELFS: readonly FlexAlignSelf[] = [
+  "auto",
+  ...FLEX_ALIGN_ITEMS,
+];
 
 export const GRID_ALIGNS: readonly GridAlign[] = [
   "stretch",
@@ -77,6 +85,25 @@ export const DEFAULT_GRID_ROWS: Record<GridRowsKind, GridRows> = {
   count: { kind: "count", count: 2 },
   auto: { kind: "auto" },
 };
+export const GRID_ITEM_COLUMN_KINDS: readonly GridItemColumnKind[] = [
+  "span",
+  "full",
+];
+
+export const DEFAULT_GRID_ITEM_COLUMN: Record<
+  GridItemColumnKind,
+  GridItemColumn
+> = {
+  span: { kind: "span", span: 1 },
+  full: { kind: "full" },
+};
+
+// 아무 속성도 안 준 박스 = CSS 기본 동작과 같은 값
+export const DEFAULT_ITEM: ItemSettings = {
+  flex: { grow: 0, alignSelf: "auto" },
+  grid: { column: DEFAULT_GRID_ITEM_COLUMN.span, rowSpan: 1 },
+};
+
 // 슬라이더 최솟값과 최댓값
 // as const로 설정값 명시
 export const LIMITS = {
@@ -85,6 +112,9 @@ export const LIMITS = {
   columns: { min: 1, max: 6 },
   rows: { min: 1, max: 4 },
   minWidth: { min: 60, max: 240 },
+  grow: { min: 0, max: 3 },
+  span: { min: 1, max: 4 },
+  rowSpan: { min: 1, max: 3 },
 } as const;
 
 export const INITIAL_STATE: PlaygroundState = {
@@ -104,4 +134,5 @@ export const INITIAL_STATE: PlaygroundState = {
     justifyItems: "stretch",
     alignItems: "stretch",
   },
+  items: Array.from({ length: LIMITS.boxCount.max }, () => DEFAULT_ITEM),
 };
