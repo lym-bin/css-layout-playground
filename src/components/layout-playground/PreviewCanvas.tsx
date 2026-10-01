@@ -1,10 +1,13 @@
 // src/components/layout-playground/PreviewCanvas.tsx
 // 오른쪽 위 미리보기 영역.
+// - 위: 미리보기 너비 툴바 (기기 너비 버튼 + 슬라이더)
+// - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
-// - 박스마다 색/높이를 다르게 줘서 정렬·순서 변화가 눈에 보이게 함
 // - 박스를 클릭하면 선택(다시 클릭하면 해제) → ItemPanel 에서 개별 속성 조절
-// - 바깥 테두리를 좌우로 드래그해 너비를 줄여볼 수 있음 (wrap 확인용)
+// - 미리보기 너비는 출력 코드와 무관한 "보기 설정"이라 이 컴포넌트 안에서만 관리한다.
 
+import { useState } from "react";
+import { LIMITS } from "@/lib/layout/constants";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
 import type { PlaygroundState } from "@/lib/layout/types";
 
@@ -24,6 +27,13 @@ const BOX_COLORS = [
 // 높이가 들쭉날쭉해야 align-items 차이가 보인다.
 const BOX_MIN_HEIGHTS = [56, 88, 64, 104, 72, 96, 60, 80];
 
+// null = 고정 너비 없이 영역을 가득 채움
+const VIEWPORT_PRESETS = [
+  { label: "모바일", width: 375 },
+  { label: "태블릿", width: 768 },
+  { label: "가득", width: null },
+] as const;
+
 interface PreviewCanvasProps {
   state: PlaygroundState;
   selectedIndex: number | null;
@@ -35,32 +45,74 @@ export default function PreviewCanvas({
   selectedIndex,
   onSelect,
 }: PreviewCanvasProps) {
+  const [width, setWidth] = useState<number | null>(null);
+
   return (
-    <div className="resize-x overflow-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="min-h-80" style={toContainerStyle(state)}>
-        {Array.from({ length: state.boxCount }, (_, i) => {
-          const selected = i === selectedIndex;
-          return (
-            <button
-              key={i}
-              type="button"
-              aria-pressed={selected}
-              aria-label={`박스 ${i + 1} 선택`}
-              onClick={() => onSelect(selected ? null : i)}
-              className={`${BOX_COLORS[i % BOX_COLORS.length]} flex min-w-16 cursor-pointer items-center justify-center rounded-lg px-4 font-mono text-lg font-bold text-white shadow ${
-                selected
-                  ? "ring-4 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-900"
-                  : ""
-              }`}
-              style={{
-                minHeight: BOX_MIN_HEIGHTS[i % BOX_MIN_HEIGHTS.length],
-                ...toItemStyle(state, i),
-              }}
-            >
-              {i + 1}
-            </button>
-          );
-        })}
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {VIEWPORT_PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            aria-pressed={width === preset.width}
+            onClick={() => setWidth(preset.width)}
+            className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+              width === preset.width
+                ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
+                : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            }`}
+          >
+            {preset.label}
+            {preset.width !== null && ` ${preset.width}`}
+          </button>
+        ))}
+        <input
+          type="range"
+          aria-label="미리보기 너비"
+          min={LIMITS.viewport.min}
+          max={LIMITS.viewport.max}
+          value={width ?? LIMITS.viewport.max}
+          onChange={(e) => setWidth(Number(e.target.value))}
+          className="min-w-32 flex-1 accent-zinc-800 dark:accent-zinc-200"
+        />
+        <span className="w-14 text-right font-mono text-xs text-zinc-500">
+          {width === null ? "가득" : `${width}px`}
+        </span>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+        <div
+          className={`mx-auto transition-[width] duration-200 ${
+            width === null ? "" : "ring-1 ring-zinc-300 dark:ring-zinc-700"
+          }`}
+          style={{ width: width ?? "100%" }}
+        >
+          <div className="min-h-80" style={toContainerStyle(state)}>
+            {Array.from({ length: state.boxCount }, (_, i) => {
+              const selected = i === selectedIndex;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={`박스 ${i + 1} 선택`}
+                  onClick={() => onSelect(selected ? null : i)}
+                  className={`${BOX_COLORS[i % BOX_COLORS.length]} flex min-w-16 cursor-pointer items-center justify-center rounded-lg px-4 font-mono text-lg font-bold text-white shadow ${
+                    selected
+                      ? "ring-4 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-900"
+                      : ""
+                  }`}
+                  style={{
+                    minHeight: BOX_MIN_HEIGHTS[i % BOX_MIN_HEIGHTS.length],
+                    ...toItemStyle(state, i),
+                  }}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

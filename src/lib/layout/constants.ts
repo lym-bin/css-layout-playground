@@ -115,6 +115,7 @@ export const LIMITS = {
   grow: { min: 0, max: 3 },
   span: { min: 1, max: 4 },
   rowSpan: { min: 1, max: 3 },
+  viewport: { min: 280, max: 1280 },
 } as const;
 
 export const INITIAL_STATE: PlaygroundState = {
