@@ -7,6 +7,7 @@
 
 // 타입만 가져오기
 import type {
+  BoxContent,
   FlexAlignItems,
   FlexAlignSelf,
   FlexDirection,
@@ -104,6 +105,37 @@ export const DEFAULT_ITEM: ItemSettings = {
   grid: { column: DEFAULT_GRID_ITEM_COLUMN.span, rowSpan: 1 },
 };
 
+// 프리셋을 고르지 않았을 때의 콘텐츠, 길이를 일부로 제각각으로 둔다.
+export const DEFAULT_CONTENTS: BoxContent[] = [
+  { title: "카드 제목", body: "짧은 설명", image: true },
+  {
+    title: "제목이 조금 더 긴 카드는 줄바꿈이 생깁니다.",
+    body: "본문이 두세 줄 정도 되는 카드 입니다. 내용 길이에 따라 높이가 달라집니다.",
+    image: true,
+  },
+  { title: "이미지 없는 카드", body: "텍스트만 있는 경우" },
+  {
+    title: "링크가 긴 카드",
+    body: "https://example.com/a-very-long-url-without-any-spaces-that-breaks-layouts",
+  },
+  {
+    title: "짧음",
+  },
+  {
+    title: "보통 길이 제목",
+    body: "설명 한 줄",
+    image: true,
+  },
+  {
+    title: "버튼",
+  },
+  {
+    title: "마지막 카드",
+    body: "끝까지 확인해보세요.",
+    image: true,
+  },
+];
+
 // 슬라이더 최솟값과 최댓값
 // as const로 설정값 명시
 export const LIMITS = {
@@ -136,4 +168,5 @@ export const INITIAL_STATE: PlaygroundState = {
     alignItems: "stretch",
   },
   items: Array.from({ length: LIMITS.boxCount.max }, () => DEFAULT_ITEM),
+  contents: DEFAULT_CONTENTS,
 };

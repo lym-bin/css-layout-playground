@@ -65,10 +65,17 @@ export interface ItemSettings {
   flex: FlexItemSettings;
   grid: GridItemSettings;
 }
+// 콘텐츠 모드에서 박스 안에 보여줄 내용, 레이아웃(CSS)에는 영향이 없다.
+export interface BoxContent {
+  title: string;
+  body?: string;
+  image?: boolean;
+}
 export interface PlaygroundState {
   mode: LayoutMode;
   boxCount: number;
   flex: FlexSettings;
   grid: GridSettings;
   items: ItemSettings[];
+  contents: BoxContent[];
 }
