@@ -73,6 +73,11 @@ export interface BoxContent {
   body?: string;
   image?: boolean;
 }
+// 콘텐츠가 길 때 박스를 뚫고 나가지 않게 하는 .item 공통 규칙
+export interface SafeguardSettings {
+  minWidthZero: boolean;
+  wrapAnywhere: boolean;
+}
 export interface PlaygroundState {
   mode: LayoutMode;
   boxCount: number;
@@ -80,4 +85,5 @@ export interface PlaygroundState {
   grid: GridSettings;
   items: ItemSettings[];
   contents: BoxContent[];
+  safeguards: SafeguardSettings;
 }

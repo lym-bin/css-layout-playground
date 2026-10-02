@@ -59,11 +59,27 @@ describe("generateCss", () => {
   });
 
   test("콘텐츠 모드에서 이미지가 있으면 .item img 규칙을 붙인다", () => {
+    const state: PlaygroundState = {
+      ...INITIAL_STATE,
+      safeguards: { minWidthZero: true, wrapAnywhere: true },
+    };
+    expect(generateCss(state, false)).toContain(
+      ".item {\n  min-width: 0;\n  overflow-wrap: anywhere;\n}",
+    );
     expect(generateCss(INITIAL_STATE, true)).toContain(".item img {");
     expect(generateCss(INITIAL_STATE, false)).not.toContain(".item img");
   });
 });
-
+test("넘침 방지 옵션을 켜면 .item 공통 규칙이 생긴다", () => {
+  const state: PlaygroundState = {
+    ...INITIAL_STATE,
+    safeguards: { minWidthZero: true, wrapAnywhere: true },
+  };
+  expect(generateCss(state, false)).toContain(
+    ".item {\n  min-width: 0;\n  overflow-wrap: anywhere;\n}",
+  );
+  expect(generateCss(INITIAL_STATE, false)).not.toContain(".item {");
+});
 describe("toColumnsTemplate", () => {
   const cases: [GridColumns, string][] = [
     [{ kind: "count", count: 3 }, "repeat(3, 1fr)"],
@@ -84,6 +100,16 @@ describe("모든 프리셋의 CSS 문법 규칙", () => {
   const cases = PRESETS.flatMap((preset) => [
     { name: `${preset.name} (숫자)`, css: generateCss(preset.state, false) },
     { name: `${preset.name} (콘텐츠)`, css: generateCss(preset.state, true) },
+    {
+      name: `${preset.name} (넘침 방지)`,
+      css: generateCss(
+        {
+          ...preset.state,
+          safeguards: { minWidthZero: true, wrapAnywhere: true },
+        },
+        true,
+      ),
+    },
   ]);
 
   test.each(cases)("$name", ({ css }) => {

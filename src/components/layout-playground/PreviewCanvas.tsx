@@ -131,10 +131,10 @@ export default function PreviewCanvas({
                   aria-pressed={selected}
                   aria-label={`박스 ${i + 1} 선택`}
                   onClick={() => onSelect(selected ? null : i)}
-                  className={`flex min-w-16 cursor-pointer rounded-lg shadow ${
+                  className={`flex cursor-pointer rounded-lg shadow ${
                     view === "number"
-                      ? `${color} items-center justify-center px-4 font-mono text-lg font-bold text-white`
-                      : "flex-col overflow-hidden bg-white text-left text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
+                      ? `${color} min-w-16 items-center justify-center px-4 font-mono text-lg font-bold text-white`
+                      : "flex-col bg-white text-left text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
                   } ${
                     selected
                       ? "ring-4 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-900"
@@ -173,7 +173,7 @@ function ContentBody({
 }) {
   return (
     <>
-      <span className={`block h-1.5 w-full ${color}`} />
+      <span className={`block h-1.5 rounded-t-lg w-full ${color}`} />
       {content.image && (
         <span className="block aspect-video w-full bg-zinc-200 dark:bg-zinc-700" />
       )}

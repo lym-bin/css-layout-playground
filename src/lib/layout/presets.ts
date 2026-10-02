@@ -194,4 +194,22 @@ export const PRESETS: readonly Preset[] = [
       ]),
     },
   },
+  {
+    id: "overflow-bug",
+    name: "넘침 버그 재현",
+    description: "긴 링크가 칸을 뚫고 나감",
+    state: {
+      ...INITIAL_STATE,
+      mode: "flex",
+      boxCount: 3,
+      contents: makeContents([
+        { title: "짧은 카드", body: "보통 내용" },
+        {
+          title: "긴 링크",
+          body: "https://example.com/a-very-long-url-without-any-spaces-that-breaks-layouts",
+        },
+        { title: "짧은 카드", body: " 보통 내용" },
+      ]),
+    },
+  },
 ];

@@ -4,6 +4,7 @@
 // - generateCss: 화면에 보여줄 CSS 코드 문자열 (컨테이너 + 바뀐 박스의 :nth-child 규칙)
 // - to...Template / to...Value: 위 두 쪽이 같이 쓰는 값 문자열
 // 모두 같은 상태에서 출발하므로 미리보기와 출력 코드가 항상 일치한다.
+// - // - generateCss: 화면에 보여줄 CSS 코드 문자열 (컨테이너 + .item 공통 + 바뀐 박스의 :nth-child 규칙)
 
 import type { CSSProperties } from "react";
 import type {
@@ -71,15 +72,22 @@ export function toItemStyle(
   index: number,
 ): CSSProperties {
   const item = state.items[index];
+  const { minWidthZero, wrapAnywhere } = state.safeguards;
+  const safeguardStyle: CSSProperties = {
+    minWidth: minWidthZero ? 0 : undefined,
+    overflowWrap: wrapAnywhere ? "anywhere" : undefined,
+  };
 
   if (state.mode === "flex") {
     return {
+      ...safeguardStyle,
       flexGrow: item.flex.grow,
       alignSelf: item.flex.alignSelf,
     };
   }
 
   return {
+    ...safeguardStyle,
     gridColumn: toGridColumnValue(item.grid.column),
     gridRow: toGridRowValue(item.grid.rowSpan),
   };
@@ -114,6 +122,15 @@ function containerLines(state: PlaygroundState): string[] {
   ];
 }
 
+// 넘침 방지 옵션이 하나라도 켜져 있으면 모든 박스에 적용되는 .item 규칙을 만든다.
+function safeguardLines(state: PlaygroundState): string[] {
+  const { minWidthZero, wrapAnywhere } = state.safeguards;
+  const lines = [
+    ...(minWidthZero ? ["  min-width: 0;"] : []),
+    ...(wrapAnywhere ? ["  overflow-wrap: anywhere;"] : []),
+  ];
+  return lines.length === 0 ? [] : ["", ".item {", ...lines, "}"];
+}
 function flexItemLines(item: FlexItemSettings): string[] {
   return [
     ...(item.grow !== 0 ? [`  flex-grow: ${item.grow};`] : []),
@@ -169,6 +186,7 @@ export function generateCss(
 ): string {
   return [
     ...containerLines(state),
+    ...safeguardLines(state),
     ...itemRuleLines(state),
     ...(withContent ? contentRuleLines(state) : []),
   ].join("\n");

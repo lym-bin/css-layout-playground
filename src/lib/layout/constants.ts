@@ -169,4 +169,6 @@ export const INITIAL_STATE: PlaygroundState = {
   },
   items: Array.from({ length: LIMITS.boxCount.max }, () => DEFAULT_ITEM),
   contents: DEFAULT_CONTENTS,
+  // 기본은 꺼둠 = 브라우저 기본 동작 그대로 (버그가 보이는 상태)
+  safeguards: { minWidthZero: false, wrapAnywhere: false },
 };

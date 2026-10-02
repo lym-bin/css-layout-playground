@@ -25,10 +25,12 @@ import type {
   GridSettings,
   LayoutMode,
   PlaygroundState,
+  SafeguardSettings,
 } from "@/lib/layout/types";
 import RangeControl from "./controls/RangeControl";
 import SelectControl from "./controls/SelectControl";
 import TextControl from "./controls/TextControl";
+import CheckboxControl from "./controls/CheckboxControl";
 
 const MODES: readonly LayoutMode[] = ["flex", "grid"];
 
@@ -52,6 +54,11 @@ export default function ControlPanel({ state, setState }: ControlPanelProps) {
     value: GridSettings[K],
   ) => setState((s) => ({ ...s, grid: { ...s.grid, [key]: value } }));
 
+  const setSafeguards = <K extends keyof SafeguardSettings>(
+    key: K,
+    value: SafeguardSettings[K],
+  ) =>
+    setState((s) => ({ ...s, safeguards: { ...s.safeguards, [key]: value } }));
   const { columns, rows } = state.grid;
   return (
     <aside className="flex flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
@@ -198,7 +205,23 @@ export default function ControlPanel({ state, setState }: ControlPanelProps) {
           />
         </>
       )}
-
+      <fieldset className="flex flex-col gap-3">
+        <legend className="mb-3 text-xs font-semibold text-zinc-500">
+          콘텐츠 넘침 방지 (.item)
+        </legend>
+        <CheckboxControl
+          label="min-width: 0"
+          description="내용보다 작게 줄어들 수 있게"
+          checked={state.safeguards.minWidthZero}
+          onChange={(v) => setSafeguards("minWidthZero", v)}
+        />
+        <CheckboxControl
+          label="overflow-wrap: anywhere"
+          description="띄어쓰기 없는 긴 단어도 줄바꿈"
+          checked={state.safeguards.wrapAnywhere}
+          onChange={(v) => setSafeguards("wrapAnywhere", v)}
+        />
+      </fieldset>
       <button
         type="button"
         onClick={() => setState(INITIAL_STATE)}
