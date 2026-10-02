@@ -1,7 +1,7 @@
 // src/components/layout-playground/LayoutPlayground.tsx
 // 플레이그라운드 전체를 조립하는 클라이언트 컴포넌트.
 // - 레이아웃 상태(PlaygroundState), 선택한 박스(selectedIndex), 보기 방식(view)을 여기서 보관
-// - 왼쪽: PresetPanel + ControlPanel + ItemPanel / 오른쪽: PreviewCanvas + CodeOutput(HTML, CSS)
+// - 왼쪽: PresetPanel + ControlPanel + ItemPanel / 오른쪽: PreviewCanvas + MarkupCheck + CodeOutput(HTML, CSS)
 // - "use client" 경계는 이 파일 하나. 여기서 import하는 컴포넌트는 자동으로 클라이언트에 포함된다.
 
 "use client";
@@ -17,6 +17,8 @@ import ControlPanel from "./ControlPanel";
 import ItemPanel from "./ItemPanel";
 import PresetPanel from "./PresetPanel";
 import PreviewCanvas from "./PreviewCanvas";
+import { checkMarkup } from "@/lib/layout/checkMarkup";
+import MarkupCheck from "./MarkupCheck";
 
 export default function LayoutPlayground() {
   const [state, setState] = useState<PlaygroundState>(INITIAL_STATE);
@@ -30,6 +32,7 @@ export default function LayoutPlayground() {
       : null;
 
   const withContent = view === "content";
+  const issues = checkMarkup(state);
 
   // 프리셋은 박스 구성이 통째로 바뀌므로 이전 선택은 의미가 없어 해제한다.
   const applyPreset = (preset: Preset) => {
@@ -57,6 +60,7 @@ export default function LayoutPlayground() {
           view={view}
           onViewChange={setView}
         />
+        <MarkupCheck issues={issues} />
         <div className="grid gap-6 xl:grid-cols-2">
           <CodeOutput title="HTML" code={generateHtml(state, withContent)} />
           <CodeOutput title="CSS" code={generateCss(state, withContent)} />
