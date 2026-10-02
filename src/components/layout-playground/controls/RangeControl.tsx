@@ -1,10 +1,14 @@
 // src/components/layout-playground/controls/RangeControl.tsx
 // 숫자 값을 조절하는 슬라이더 한 세트.
-// - 라벨 + 현재 값 표시 + <input type="range">
+// - 이름(한국어) + CSS 속성 태그 + 현재 값 표시 + <input type="range"> + 한 줄 설명
 // - 값은 부모가 가지고 있고, 바뀌면 onChange로 알려준다 (제어 컴포넌트).
+
+import { ControlHint, ControlLabel } from "./ControlLabel";
 
 interface RangeControlProps {
   label: string;
+  code?: string;
+  hint?: string;
   value: number;
   min: number;
   max: number;
@@ -14,6 +18,8 @@ interface RangeControlProps {
 
 export default function RangeControl({
   label,
+  code,
+  hint,
   value,
   min,
   max,
@@ -22,13 +28,12 @@ export default function RangeControl({
 }: RangeControlProps) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="flex justify-between font-mono text-xs text-zinc-500">
-        {label}
-        <span className="text-zinc-800 dark:text-zinc-200">
+      <ControlLabel label={label} code={code}>
+        <span className="font-mono text-sm text-zinc-800 dark:text-zinc-200">
           {value}
           {unit}
         </span>
-      </span>
+      </ControlLabel>
       <input
         type="range"
         min={min}
@@ -37,6 +42,7 @@ export default function RangeControl({
         onChange={(e) => onChange(Number(e.target.value))}
         className="accent-zinc-800 dark:accent-zinc-200"
       />
+      <ControlHint hint={hint} />
     </label>
   );
 }

@@ -1,10 +1,11 @@
-// src/components/layout-playground/controls/CheckboxConyrol.tsx
+// src/components/layout-playground/controls/CheckboxControl.tsx
 // 켜고 끄는 옵션 한 세트.
-// - 체크박스 + 라벨(코드) + (있으면) 짧은 설명
+// - 체크박스 + 이름(한국어) + CSS 코드 태그 + (있으면) 짧은 설명
 // - 값은 부모가 가지고 있고, 바뀌면 onChange로 알려준다. (제어 컴포넌트)
 
 interface CheckboxControlProps {
   label: string;
+  code?: string;
   description?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -12,6 +13,7 @@ interface CheckboxControlProps {
 
 export default function CheckboxControl({
   label,
+  code,
   description,
   checked,
   onChange,
@@ -22,12 +24,19 @@ export default function CheckboxControl({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 accent-zinc-800 dark:accent-zinc-200"
+        className="mt-1 accent-zinc-800 dark:accent-zinc-200"
       />
-      <span className="flex flex-col gap-0.5">
-        <span className="font-mono text-xs">{label}</span>
+      <span className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+          {label}
+        </span>
+        {code && (
+          <code className="self-start rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+            {code}
+          </code>
+        )}
         {description && (
-          <span className="text-[11px] leading-4 text-zinc-500">
+          <span className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
             {description}
           </span>
         )}

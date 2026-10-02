@@ -14,6 +14,12 @@ import {
   ITEM_TAGS,
   LIMITS,
 } from "@/lib/layout/constants";
+import {
+  FLEX_ALIGN_SELF_HINTS,
+  flexGrowHint,
+  GRID_ITEM_COLUMN_HINTS,
+  ITEM_TAG_HINTS,
+} from "@/lib/layout/descriptions";
 import type {
   BoxContent,
   FlexItemSettings,
@@ -41,8 +47,9 @@ export default function ItemPanel({
   if (selectedIndex === null) {
     return (
       <aside className={PANEL_CLASS}>
-        <p className="text-sm text-zinc-500">
-          미리보기에서 박스를 클릭하면 그 박스만의 속성을 조절할 수 있습니다.
+        <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          미리보기에서 박스를 클릭하면 여기서 그 박스만 따로 바꿀 수 있습니다.
+          (태그, 남는 공간 차지, 차지할 칸 수 등)
         </p>
       </aside>
     );
@@ -51,6 +58,7 @@ export default function ItemPanel({
   const index = selectedIndex;
   const item = state.items[index];
   const { column } = item.grid;
+  const tag = state.contents[index].tag ?? DEFAULT_ITEM_TAG;
 
   const updateItem = (update: (item: ItemSettings) => ItemSettings) =>
     setState((s) => ({
@@ -74,24 +82,29 @@ export default function ItemPanel({
 
   return (
     <aside className={PANEL_CLASS}>
-      <h2 className="text-sm font-semibold">박스 {index + 1} 개별 속성</h2>
+      <h2 className="text-sm font-semibold">박스 {index + 1}번만 따로 바꾸기</h2>
       <SelectControl
         label="태그"
-        value={state.contents[index].tag ?? DEFAULT_ITEM_TAG}
+        hint={ITEM_TAG_HINTS[tag]}
+        value={tag}
         options={ITEM_TAGS}
         onChange={(tag) => updateContent((c) => ({ ...c, tag }))}
       />
       {state.mode === "flex" ? (
         <>
           <RangeControl
-            label="flex-grow"
+            label="남는 공간 차지"
+            code="flex-grow"
+            hint={flexGrowHint(item.flex.grow)}
             value={item.flex.grow}
             min={LIMITS.grow.min}
             max={LIMITS.grow.max}
             onChange={(v) => setFlexItem("grow", v)}
           />
           <SelectControl
-            label="align-self"
+            label="이 박스만 교차축 정렬"
+            code="align-self"
+            hint={FLEX_ALIGN_SELF_HINTS[item.flex.alignSelf]}
             value={item.flex.alignSelf}
             options={FLEX_ALIGN_SELFS}
             onChange={(v) => setFlexItem("alignSelf", v)}
@@ -100,7 +113,9 @@ export default function ItemPanel({
       ) : (
         <>
           <SelectControl
-            label="grid-column"
+            label="차지할 열"
+            code="grid-column"
+            hint={GRID_ITEM_COLUMN_HINTS[column.kind]}
             value={column.kind}
             options={GRID_ITEM_COLUMN_KINDS}
             onChange={(kind) =>
@@ -109,7 +124,8 @@ export default function ItemPanel({
           />
           {column.kind === "span" && (
             <RangeControl
-              label="column span"
+              label="열 칸 수"
+              code={`span ${column.span}`}
               value={column.span}
               min={LIMITS.span.min}
               max={LIMITS.span.max}
@@ -117,7 +133,9 @@ export default function ItemPanel({
             />
           )}
           <RangeControl
-            label="row span"
+            label="행 칸 수"
+            code="grid-row"
+            hint="세로로 몇 칸을 차지할지 정합니다."
             value={item.grid.rowSpan}
             min={LIMITS.rowSpan.min}
             max={LIMITS.rowSpan.max}
@@ -131,7 +149,7 @@ export default function ItemPanel({
         onClick={() => updateItem(() => DEFAULT_ITEM)}
         className="rounded-md border border-zinc-300 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
       >
-        이 박스 초기화
+        이 박스만 처음 상태로
       </button>
     </aside>
   );

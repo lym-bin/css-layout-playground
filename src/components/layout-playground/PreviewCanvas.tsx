@@ -29,15 +29,16 @@ import type {
 
 // Tailwind는 소스 코드에 "완성된 문자열"로 적힌 클래스만 CSS로 만든다.
 // `bg-${color}-400` 처럼 조합하면 빌드 결과에 포함되지 않으므로 전부 풀어서 적는다.
+// 흰 숫자가 잘 읽히도록 진한 색(흰 글자와 명도 대비 4.5 : 1 이상)만 쓴다.
 const BOX_COLORS = [
-  "bg-rose-400",
-  "bg-amber-400",
-  "bg-lime-500",
-  "bg-sky-400",
-  "bg-violet-400",
-  "bg-pink-400",
-  "bg-teal-400",
-  "bg-orange-400",
+  "bg-rose-600",
+  "bg-amber-700",
+  "bg-green-700",
+  "bg-sky-700",
+  "bg-violet-600",
+  "bg-pink-700",
+  "bg-teal-700",
+  "bg-orange-700",
 ];
 
 // 숫자 모드에서는 높이가 들쭉날쭉해야 align-items 차이가 보인다.
@@ -52,9 +53,11 @@ const DEVICE_LABELS: Record<Breakpoint, string> = {
 };
 
 const VIEW_OPTIONS = [
-  { value: "number", label: "숫자" },
-  { value: "content", label: "콘텐츠" },
+  { value: "number", label: "숫자 박스" },
+  { value: "content", label: "실제 콘텐츠" },
 ] as const;
+
+const TOOLBAR_GROUP_LABEL = "text-xs font-medium text-zinc-500 dark:text-zinc-400";
 
 const TOOLBAR_BUTTON =
   "rounded-md border px-2.5 py-1 text-xs transition-colors";
@@ -89,6 +92,7 @@ export default function PreviewCanvas({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        <span className={TOOLBAR_GROUP_LABEL}>보기</span>
         {VIEW_OPTIONS.map((option) => (
           <button
             key={option.value}
@@ -106,6 +110,7 @@ export default function PreviewCanvas({
           aria-hidden
         />
 
+        <span className={TOOLBAR_GROUP_LABEL}>화면 너비</span>
         {BREAKPOINTS.map((bp) => {
           const deviceWidth = BREAKPOINT_PREVIEW_WIDTH[bp];
           return (
@@ -147,6 +152,13 @@ export default function PreviewCanvas({
             ? "기본 (미디어쿼리 없음)"
             : `@media ${BREAKPOINT_LABELS[applied]}`}
         </span>
+      </p>
+
+      {/* 박스 클릭 기능은 눈에 안 띄어서, 미리보기 바로 위에서 알려준다. */}
+      <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-200">
+        {selectedIndex === null
+          ? "박스를 클릭하면 그 박스만 따로 바꿀 수 있습니다. (태그, 남는 공간 차지, 차지할 칸 수 등)"
+          : `박스 ${selectedIndex + 1}번 선택됨 · "박스 ${selectedIndex + 1}번만 따로 바꾸기" 패널에서 조절하세요. 다시 클릭하면 선택이 풀립니다.`}
       </p>
 
       <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">

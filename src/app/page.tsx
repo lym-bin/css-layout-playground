@@ -7,7 +7,7 @@ import LayoutPlayground from "@/components/layout-playground/LayoutPlayground";
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col bg-zinc-100 dark:bg-black">
-      <header className="mx-auto w-full max-w-6xl px-6 pt-8">
+      <header className="mx-auto w-full max-w-7xl px-6 pt-8">
         <h1 className="text-2xl font-bold tracking-tight">
           CSS Layout Playground
         </h1>

@@ -30,7 +30,8 @@ PostCSS, parse5, babel 같은 파서가 다 필요해져서 범위가 너무 커
   - `grid-template-rows`: 개수 고정 / `auto`
   - `justify-items`, `align-items`, `gap`
 - 직접 입력한 열 템플릿은 `CSS.supports()`로 검사해서 잘못된 값이면 경고 표시
-- 박스 개수 조절 (1~8개), Reset으로 초기화
+- 박스 개수 조절 (1~8개), "처음 상태로 되돌리기"로 초기화
+- 컨트롤 이름은 한국어(예: 주축 정렬)로 쓰고 실제 CSS 속성 이름을 옆에 태그로 붙였습니다. 아래에는 지금 고른 값이 무슨 뜻인지 한 줄 설명이 나옵니다
 
 ### 박스별 속성
 - 미리보기에서 박스를 클릭해서 선택 (키보드 Tab / Enter도 가능)
@@ -138,6 +139,7 @@ src/
 │       ├── MarkupCheck.tsx        # 마크업 진단 결과 표시
 │       ├── CodeOutput.tsx         # 코드 출력 + 복사 (HTML/CSS 공용)
 │       └── controls/
+│           ├── ControlLabel.tsx   # 이름 + CSS 속성 태그 / 한 줄 설명 (컨트롤 공용)
 │           ├── RangeControl.tsx
 │           ├── SelectControl.tsx
 │           ├── TextControl.tsx
@@ -147,6 +149,7 @@ src/
         ├── types.ts               # 상태 타입
         ├── constants.ts           # 선택지 목록, 슬라이더 범위, 기본값
         ├── presets.ts             # 실무 패턴 프리셋 데이터
+        ├── descriptions.ts        # 선택지 값마다 화면에 보여줄 한 줄 설명
         ├── generateCss.ts         # 상태 -> style 객체 / CSS 문자열
         ├── generateCss.test.ts
         ├── generateHtml.ts        # 상태 -> HTML 문자열
@@ -170,7 +173,8 @@ src/
 - `"use client"`는 `LayoutPlayground`에만 붙이고 `page.tsx`는 서버 컴포넌트로 뒀습니다.
 - 박스 개수를 줄여서 선택한 박스가 사라지는 경우는 `useEffect`로 맞추지 않고, 렌더링할 때 계산하는 값으로 처리했습니다.
 - `CSS.supports()`는 브라우저에만 있는 API라서, `"use client"` 컴포넌트가 서버에서 먼저 렌더링될 때는 검사를 건너뛰게 했습니다.
-- Tailwind는 빌드할 때 소스에 그대로 적힌 클래스만 만들기 때문에, `bg-${color}-400`처럼 조합하지 않고 완성된 클래스 문자열 배열을 썼습니다.
+- Tailwind는 빌드할 때 소스에 그대로 적힌 클래스만 만들기 때문에, `bg-${color}-400`처럼 조합하지 않고 완성된 클래스 문자열 배열을 썼습니다. 박스 색은 흰 숫자와 명도 대비가 4.5 : 1 이상 나오는 진한 색(600~700)만 골랐습니다.
+- 값 설명은 `Record<선택지 타입, string>`으로 적어서, 선택지를 추가하고 설명을 빠뜨리면 컴파일 에러가 나게 했습니다.
 - 마크업 진단(`checkMarkup`)도 상태를 받아 결과를 돌려주는 순수 함수라, 상태로 저장하지 않고 렌더링할 때마다 계산합니다. 진단 결과에는 `id`를 둬서 화면 문구를 바꿔도 테스트는 `id`로 확인하게 했습니다.
 - 모든 프리셋에 대해 "CSS 문법 규칙", "HTML 태그 짝", "마크업 오류 없음"을 테스트해서, 프리셋 데이터를 고치다가 생기는 실수도 테스트에 걸리게 했습니다.
 - 진단 결과 영역은 `role="status"`를 줘서, 태그를 바꿨을 때 스크린리더가 바뀐 결과를 읽어주게 했습니다.

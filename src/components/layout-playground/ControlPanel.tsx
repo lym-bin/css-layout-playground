@@ -4,7 +4,8 @@
 // - 박스 개수 슬라이더 (두 모드 공통)
 // - 편집 구간 탭 (기본 / 768px 이상 / 1024px 이상) → 아래 컨테이너 속성이 어느 구간 값인지 정함
 // - 현재 모드에 맞는 속성 컨트롤들 (구간에서 덮어쓴 값은 파란 선 + 되돌리기 버튼으로 표시)
-// - Reset 버튼
+//   이름은 한국어 + CSS 속성 태그, 아래에 지금 고른 값의 뜻(descriptions.ts)을 한 줄로 보여준다.
+// - 처음 상태로 되돌리기 버튼
 // 상태는 직접 갖지 않고, 부모(LayoutPlayground)의 state / setState 를 받아서 쓴다.
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
@@ -24,6 +25,18 @@ import {
   JUSTIFY_CONTENTS,
   LIMITS,
 } from "@/lib/layout/constants";
+import {
+  CONTAINER_TAG_HINTS,
+  FLEX_ALIGN_ITEMS_HINTS,
+  FLEX_DIRECTION_HINTS,
+  FLEX_WRAP_HINTS,
+  flexAxes,
+  GRID_ALIGN_ITEMS_HINTS,
+  GRID_COLUMNS_HINTS,
+  GRID_JUSTIFY_ITEMS_HINTS,
+  GRID_ROWS_HINTS,
+  JUSTIFY_CONTENT_HINTS,
+} from "@/lib/layout/descriptions";
 import {
   clearOverride,
   isOverridden,
@@ -109,6 +122,7 @@ export default function ControlPanel({
   );
 
   const { columns, rows } = shown.grid;
+  const axes = flexAxes(shown.flex.direction);
   return (
     <aside className="flex flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
@@ -130,7 +144,7 @@ export default function ControlPanel({
       </div>
 
       <RangeControl
-        label="Box count"
+        label="박스 개수"
         value={state.boxCount}
         min={LIMITS.boxCount.min}
         max={LIMITS.boxCount.max}
@@ -138,14 +152,18 @@ export default function ControlPanel({
       />
       <SelectControl
         label="컨테이너 태그"
+        hint={CONTAINER_TAG_HINTS[state.containerTag]}
         value={state.containerTag}
         options={CONTAINER_TAGS}
         onChange={(containerTag) => setState((s) => ({ ...s, containerTag }))}
       />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-xs font-semibold text-zinc-500">
-          편집할 화면 구간 (@media)
+        <legend className="mb-2 text-sm font-medium text-zinc-800 dark:text-zinc-100">
+          편집할 화면 구간{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] font-normal text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+            @media
+          </code>
         </legend>
         <div className="flex gap-1">
           {BREAKPOINTS.map((bp) => {
@@ -179,7 +197,9 @@ export default function ControlPanel({
             "flex",
             "direction",
             <SelectControl
-              label="flex-direction"
+              label="배치 방향"
+              code="flex-direction"
+              hint={FLEX_DIRECTION_HINTS[shown.flex.direction]}
               value={shown.flex.direction}
               options={FLEX_DIRECTIONS}
               onChange={(v) => setFlex("direction", v)}
@@ -189,7 +209,9 @@ export default function ControlPanel({
             "flex",
             "wrap",
             <SelectControl
-              label="flex-wrap"
+              label="줄바꿈"
+              code="flex-wrap"
+              hint={FLEX_WRAP_HINTS[shown.flex.wrap]}
               value={shown.flex.wrap}
               options={FLEX_WRAPS}
               onChange={(v) => setFlex("wrap", v)}
@@ -199,7 +221,9 @@ export default function ControlPanel({
             "flex",
             "justifyContent",
             <SelectControl
-              label="justify-content"
+              label={`주축 정렬 (지금은 ${axes.main})`}
+              code="justify-content"
+              hint={JUSTIFY_CONTENT_HINTS[shown.flex.justifyContent]}
               value={shown.flex.justifyContent}
               options={JUSTIFY_CONTENTS}
               onChange={(v) => setFlex("justifyContent", v)}
@@ -209,7 +233,9 @@ export default function ControlPanel({
             "flex",
             "alignItems",
             <SelectControl
-              label="align-items"
+              label={`교차축 정렬 (지금은 ${axes.cross})`}
+              code="align-items"
+              hint={FLEX_ALIGN_ITEMS_HINTS[shown.flex.alignItems]}
               value={shown.flex.alignItems}
               options={FLEX_ALIGN_ITEMS}
               onChange={(v) => setFlex("alignItems", v)}
@@ -219,7 +245,9 @@ export default function ControlPanel({
             "flex",
             "gap",
             <RangeControl
-              label="gap"
+              label="박스 사이 간격"
+              code="gap"
+              hint="박스와 박스 사이만 벌어집니다. 바깥 여백은 생기지 않습니다."
               unit="px"
               value={shown.flex.gap}
               min={LIMITS.gap.min}
@@ -235,7 +263,9 @@ export default function ControlPanel({
             "columns",
             <div className="flex flex-col gap-5">
               <SelectControl
-                label="grid-template-columns"
+                label="열 나누기"
+                code="grid-template-columns"
+                hint={GRID_COLUMNS_HINTS[columns.kind]}
                 value={columns.kind}
                 options={GRID_COLUMNS_KINDS}
                 onChange={(kind) =>
@@ -244,7 +274,7 @@ export default function ControlPanel({
               />
               {columns.kind === "count" && (
                 <RangeControl
-                  label="columns"
+                  label="열 개수"
                   value={columns.count}
                   min={LIMITS.columns.min}
                   max={LIMITS.columns.max}
@@ -255,7 +285,8 @@ export default function ControlPanel({
               )}
               {(columns.kind === "auto-fill" || columns.kind === "auto-fit") && (
                 <RangeControl
-                  label="min width"
+                  label="열 최소 너비"
+                  hint="열 하나가 이보다 좁아지지 않습니다. 화면이 좁아지면 열 개수가 줄어듭니다."
                   unit="px"
                   value={columns.minWidth}
                   min={LIMITS.minWidth.min}
@@ -267,13 +298,14 @@ export default function ControlPanel({
               )}
               {columns.kind === "custom" && (
                 <TextControl
-                  label="template"
+                  label="열 너비 직접 입력"
+                  hint="fr 은 남은 공간을 나눠 갖는 비율입니다. 예) 1fr 2fr = 1 : 2"
                   value={columns.template}
                   placeholder="200px 1fr"
                   error={
                     isValidColumnsTemplate(columns.template)
                       ? undefined
-                      : "유효하지 않는 값이라 브라우저가 무시합니다"
+                      : "올바르지 않은 값이라 브라우저가 무시합니다."
                   }
                   onChange={(template) =>
                     setGrid("columns", { kind: "custom", template })
@@ -287,14 +319,16 @@ export default function ControlPanel({
             "rows",
             <div className="flex flex-col gap-5">
               <SelectControl
-                label="grid-template-rows"
+                label="행 나누기"
+                code="grid-template-rows"
+                hint={GRID_ROWS_HINTS[rows.kind]}
                 value={rows.kind}
                 options={GRID_ROWS_KINDS}
                 onChange={(kind) => setGrid("rows", DEFAULT_GRID_ROWS[kind])}
               />
               {rows.kind === "count" && (
                 <RangeControl
-                  label="rows"
+                  label="행 개수"
                   value={rows.count}
                   min={LIMITS.rows.min}
                   max={LIMITS.rows.max}
@@ -307,7 +341,9 @@ export default function ControlPanel({
             "grid",
             "justifyItems",
             <SelectControl
-              label="justify-items"
+              label="칸 안 가로 정렬"
+              code="justify-items"
+              hint={GRID_JUSTIFY_ITEMS_HINTS[shown.grid.justifyItems]}
               value={shown.grid.justifyItems}
               options={GRID_ALIGNS}
               onChange={(v) => setGrid("justifyItems", v)}
@@ -317,7 +353,9 @@ export default function ControlPanel({
             "grid",
             "alignItems",
             <SelectControl
-              label="align-items"
+              label="칸 안 세로 정렬"
+              code="align-items"
+              hint={GRID_ALIGN_ITEMS_HINTS[shown.grid.alignItems]}
               value={shown.grid.alignItems}
               options={GRID_ALIGNS}
               onChange={(v) => setGrid("alignItems", v)}
@@ -327,7 +365,9 @@ export default function ControlPanel({
             "grid",
             "gap",
             <RangeControl
-              label="gap"
+              label="칸 사이 간격"
+              code="gap"
+              hint="칸과 칸 사이만 벌어집니다. 바깥 여백은 생기지 않습니다."
               unit="px"
               value={shown.grid.gap}
               min={LIMITS.gap.min}
@@ -338,18 +378,23 @@ export default function ControlPanel({
         </>
       )}
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-3 text-xs font-semibold text-zinc-500">
-          콘텐츠 넘침 방지 (.item)
+        <legend className="mb-3 text-sm font-medium text-zinc-800 dark:text-zinc-100">
+          콘텐츠 넘침 방지{" "}
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] font-normal text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+            .item
+          </code>
         </legend>
         <CheckboxControl
-          label="min-width: 0"
-          description="내용보다 작게 줄어들 수 있게"
+          label="내용보다 작게 줄어들기"
+          code="min-width: 0"
+          description="flex / grid 박스는 기본으로 안의 가장 긴 단어보다 작아지지 않습니다."
           checked={state.safeguards.minWidthZero}
           onChange={(v) => setSafeguards("minWidthZero", v)}
         />
         <CheckboxControl
-          label="overflow-wrap: anywhere"
-          description="띄어쓰기 없는 긴 단어도 줄바꿈"
+          label="긴 단어도 줄바꿈"
+          code="overflow-wrap: anywhere"
+          description="띄어쓰기 없는 긴 링크나 단어를 칸 안에서 끊어 줍니다."
           checked={state.safeguards.wrapAnywhere}
           onChange={(v) => setSafeguards("wrapAnywhere", v)}
         />
@@ -359,7 +404,7 @@ export default function ControlPanel({
         onClick={() => setState(INITIAL_STATE)}
         className="rounded-md border border-zinc-300 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
       >
-        Reset
+        처음 상태로 되돌리기
       </button>
     </aside>
   );

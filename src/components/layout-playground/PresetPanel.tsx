@@ -13,7 +13,7 @@ interface PresetPanelProps {
 export default function PresetPanel({ onApply }: PresetPanelProps) {
   return (
     <aside className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="text-sm font-semibold">실무적 패턴 프리셋</h2>
+      <h2 className="text-sm font-semibold">자주 쓰는 레이아웃 불러오기</h2>
       <div className="grid grid-cols-2 gap-2">
         {PRESETS.map((preset) => (
           <button
@@ -22,8 +22,8 @@ export default function PresetPanel({ onApply }: PresetPanelProps) {
             onClick={() => onApply(preset)}
             className="flex flex-col gap-0.5 rounded-md border border-zinc-300 px-2.5 py-2 text-left hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
           >
-            <span className="text-xs font-medium">{preset.name}</span>
-            <span className="text-[11px] leading-4 text-zinc-500">
+            <span className="text-sm font-medium">{preset.name}</span>
+            <span className="text-xs leading-4 text-zinc-600 dark:text-zinc-400">
               {preset.description}
             </span>
           </button>

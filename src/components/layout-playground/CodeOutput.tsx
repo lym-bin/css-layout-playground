@@ -2,7 +2,7 @@
 // 코드 출력 영역 (HTML / CSS에 각각 하나씩 사용)
 // - 상단 바: 제목 + 복사 버튼
 // - 넘겨 받은 코드 문자열을 그대로 보여줌 (어떤 코드인지는 모름 -> 재사용 가능)
-// - 복사 버튼: 클립보드에 복사하고 잠깐 "Copied!" / "Failed" 표시 후 원래대로
+// - 복사 버튼: 클립보드에 복사하고 잠깐 "복사됨" / "복사 실패" 표시 후 원래대로
 // - highlighted 로 받은 줄 번호는 배경색으로 강조 (CSS 에서 지금 적용 중인 @media 블록 표시용)
 // - note 가 있으면 코드 아래에 안내 한 줄 (예: @media 가 아직 없을 때 만드는 방법)
 
@@ -11,9 +11,9 @@ import { useRef, useState } from "react";
 type CopyStatus = "idle" | "copied" | "failed";
 
 const STATUS_LABEL: Record<CopyStatus, string> = {
-  idle: "Copy",
-  copied: "Copied!",
-  failed: "Failed",
+  idle: "복사",
+  copied: "복사됨",
+  failed: "복사 실패",
 };
 
 interface CodeOutputProps {
