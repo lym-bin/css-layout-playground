@@ -165,7 +165,11 @@ export const DEFAULT_CONTENTS: BoxContent[] = [
 
 // 미디어쿼리 구간 순서 (작은 폭 -> 큰 폭). 덮어쓰기는 이 순서대로 쌓인다
 export const BREAKPOINTS: readonly Breakpoint[] = ["base", "md", "lg"];
-
+// base를 뺀 "덮어쓰기 구간"만 (작은 폭 -> 큰 폭)
+// filter의 콜백을 타입 가드로 써서 결과 타입이 MediaBreakpoint[]가 되게 한다.
+export const MEDIA_BREAKPOINTS: readonly MediaBreakpoint[] = BREAKPOINTS.filter(
+  (bp): bp is MediaBreakpoint => bp !== "base",
+);
 // 각 구간이 시작되는 폭, @media (min-width: ...)에 그대로 들어간다.
 export const BREAKPOINT_MIN_WIDTH: Record<MediaBreakpoint, number> = {
   md: 768,
