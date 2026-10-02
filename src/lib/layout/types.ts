@@ -6,9 +6,21 @@
 // 런타임 코드는 없고 컴파일 타임 검사용
 // - 박스별 개별 속성(ItemSettings) 정의
 export type LayoutMode = "flex" | "grid";
-// 미리보기를 숫자로 볼지, 예시 콘텐츠로 볼지, 출력 HTML/CSS도 이 값에 따라 달라잔다.
+// 미리보기를 숫자로 "ㅇ볼지, 예시 콘텐츠로 볼지, 출력 HTML/CSS도 이 값에 따라 달라잔다.
 export type PreviewView = "number" | "content";
-
+// 출력 HTML에 쓸 태그, 역할에 맞는 태그를 고르면 의미가 드러나는 마크업이 된다.
+export type ContainerTag = "div" | "header" | "nav" | "section" | "ul";
+export type ItemTag =
+  | "div"
+  | "header"
+  | "nav"
+  | "main"
+  | "aside"
+  | "footer"
+  | "section"
+  | "article"
+  | "li"
+  | "a";
 export type FlexDirection = "row" | "row-reverse" | "column" | "column-reverse";
 export type FlexWrap = "nowrap" | "wrap" | "wrap-reverse";
 export type JustifyContent =
@@ -72,6 +84,7 @@ export interface BoxContent {
   title: string;
   body?: string;
   image?: boolean;
+  tag?: ItemTag;
 }
 // 콘텐츠가 길 때 박스를 뚫고 나가지 않게 하는 .item 공통 규칙
 export interface SafeguardSettings {
@@ -86,4 +99,5 @@ export interface PlaygroundState {
   items: ItemSettings[];
   contents: BoxContent[];
   safeguards: SafeguardSettings;
+  containerTag: ContainerTag;
 }

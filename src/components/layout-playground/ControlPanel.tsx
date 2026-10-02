@@ -8,6 +8,7 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import {
+  CONTAINER_TAGS,
   DEFAULT_GRID_COLUMNS,
   DEFAULT_GRID_ROWS,
   FLEX_ALIGN_ITEMS,
@@ -87,7 +88,12 @@ export default function ControlPanel({ state, setState }: ControlPanelProps) {
         max={LIMITS.boxCount.max}
         onChange={(boxCount) => setState((s) => ({ ...s, boxCount }))}
       />
-
+      <SelectControl
+        label="컨테이너 태그"
+        value={state.containerTag}
+        options={CONTAINER_TAGS}
+        onChange={(containerTag) => setState((s) => ({ ...s, containerTag }))}
+      />
       {state.mode === "flex" ? (
         <>
           <SelectControl

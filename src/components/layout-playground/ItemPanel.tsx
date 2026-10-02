@@ -8,11 +8,14 @@ import type { Dispatch, SetStateAction } from "react";
 import {
   DEFAULT_GRID_ITEM_COLUMN,
   DEFAULT_ITEM,
+  DEFAULT_ITEM_TAG,
   FLEX_ALIGN_SELFS,
   GRID_ITEM_COLUMN_KINDS,
+  ITEM_TAGS,
   LIMITS,
 } from "@/lib/layout/constants";
 import type {
+  BoxContent,
   FlexItemSettings,
   GridItemSettings,
   ItemSettings,
@@ -54,7 +57,11 @@ export default function ItemPanel({
       ...s,
       items: s.items.map((it, i) => (i === index ? update(it) : it)),
     }));
-
+  const updateContent = (update: (content: BoxContent) => BoxContent) =>
+    setState((s) => ({
+      ...s,
+      contents: s.contents.map((c, i) => (i === index ? update(c) : c)),
+    }));
   const setFlexItem = <K extends keyof FlexItemSettings>(
     key: K,
     value: FlexItemSettings[K],
@@ -68,7 +75,12 @@ export default function ItemPanel({
   return (
     <aside className={PANEL_CLASS}>
       <h2 className="text-sm font-semibold">박스 {index + 1} 개별 속성</h2>
-
+      <SelectControl
+        label="태그"
+        value={state.contents[index].tag ?? DEFAULT_ITEM_TAG}
+        options={ITEM_TAGS}
+        onChange={(tag) => updateContent((c) => ({ ...c, tag }))}
+      />
       {state.mode === "flex" ? (
         <>
           <RangeControl

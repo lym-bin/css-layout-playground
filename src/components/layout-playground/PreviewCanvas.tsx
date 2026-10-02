@@ -7,10 +7,11 @@
 // - 보기 방식(숫자/콘텐츠)은 출력 코드에도 영향을 주므로 부모에게서 받는다.
 
 import { useState } from "react";
-import { LIMITS } from "@/lib/layout/constants";
+import { DEFAULT_ITEM_TAG, LIMITS } from "@/lib/layout/constants";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
 import type {
   BoxContent,
+  ItemTag,
   PlaygroundState,
   PreviewView,
 } from "@/lib/layout/types";
@@ -124,6 +125,7 @@ export default function PreviewCanvas({
             {Array.from({ length: state.boxCount }, (_, i) => {
               const selected = i === selectedIndex;
               const color = BOX_COLORS[i % BOX_COLORS.length];
+              const tag = state.contents[i].tag ?? DEFAULT_ITEM_TAG;
               return (
                 <button
                   key={i}
@@ -149,9 +151,20 @@ export default function PreviewCanvas({
                   }}
                 >
                   {view === "number" ? (
-                    i + 1
+                    <span className="flex flex-col items-center leading-tight">
+                      {i + 1}
+                      {tag !== "div" && (
+                        <span className="font-mono text-[10px] font-normal opacity-80">
+                          &lt;{tag}&gt;
+                        </span>
+                      )}
+                    </span>
                   ) : (
-                    <ContentBody content={state.contents[i]} color={color} />
+                    <ContentBody
+                      content={state.contents[i]}
+                      color={color}
+                      tag={tag}
+                    />
                   )}
                 </button>
               );
@@ -167,17 +180,24 @@ export default function PreviewCanvas({
 function ContentBody({
   content,
   color,
+  tag,
 }: {
   content: BoxContent;
   color: string;
+  tag: ItemTag;
 }) {
   return (
     <>
-      <span className={`block h-1.5 rounded-t-lg w-full ${color}`} />
+      <span className={`block h-1.5 w-full rounded-t-lg ${color}`} />
       {content.image && (
         <span className="block aspect-video w-full bg-zinc-200 dark:bg-zinc-700" />
       )}
       <span className="flex flex-col gap-1 p-3">
+        {tag !== "div" && (
+          <span className="font-mono text-[10px] text-zinc-400">
+            &lt;{tag}&gt;
+          </span>
+        )}
         <span className="text-sm font-semibold">{content.title}</span>
         {content.body && (
           <span className="text-xs text-zinc-500 dark:text-zinc-400">

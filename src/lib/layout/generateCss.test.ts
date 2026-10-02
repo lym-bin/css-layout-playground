@@ -59,6 +59,11 @@ describe("generateCss", () => {
   });
 
   test("콘텐츠 모드에서 이미지가 있으면 .item img 규칙을 붙인다", () => {
+    expect(generateCss(INITIAL_STATE, true)).toContain(".item img {");
+    expect(generateCss(INITIAL_STATE, false)).not.toContain(".item img");
+  });
+
+  test("넘침 방지 옵션을 켜면 .item 공통 규칙이 생긴다", () => {
     const state: PlaygroundState = {
       ...INITIAL_STATE,
       safeguards: { minWidthZero: true, wrapAnywhere: true },
@@ -66,20 +71,31 @@ describe("generateCss", () => {
     expect(generateCss(state, false)).toContain(
       ".item {\n  min-width: 0;\n  overflow-wrap: anywhere;\n}",
     );
-    expect(generateCss(INITIAL_STATE, true)).toContain(".item img {");
-    expect(generateCss(INITIAL_STATE, false)).not.toContain(".item img");
+    expect(generateCss(INITIAL_STATE, false)).not.toContain(".item {");
+  });
+
+  test("컨테이너가 ul 이면 목록 기본 스타일을 지운다", () => {
+    const css = generateCss({ ...INITIAL_STATE, containerTag: "ul" }, false);
+    expect(css).toContain(
+      "  list-style: none;\n  margin: 0;\n  padding: 0;\n}",
+    );
+  });
+
+  test("<a> 박스가 있으면 링크 기본 스타일을 되돌린다", () => {
+    const state: PlaygroundState = {
+      ...INITIAL_STATE,
+      contents: [
+        { title: "LOGO", tag: "a" },
+        ...INITIAL_STATE.contents.slice(1),
+      ],
+    };
+    expect(generateCss(state, false)).toContain(
+      "a.item {\n  color: inherit;",
+    );
+    expect(generateCss(INITIAL_STATE, false)).not.toContain("a.item");
   });
 });
-test("넘침 방지 옵션을 켜면 .item 공통 규칙이 생긴다", () => {
-  const state: PlaygroundState = {
-    ...INITIAL_STATE,
-    safeguards: { minWidthZero: true, wrapAnywhere: true },
-  };
-  expect(generateCss(state, false)).toContain(
-    ".item {\n  min-width: 0;\n  overflow-wrap: anywhere;\n}",
-  );
-  expect(generateCss(INITIAL_STATE, false)).not.toContain(".item {");
-});
+
 describe("toColumnsTemplate", () => {
   const cases: [GridColumns, string][] = [
     [{ kind: "count", count: 3 }, "repeat(3, 1fr)"],

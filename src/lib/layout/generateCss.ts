@@ -94,6 +94,11 @@ export function toItemStyle(
 }
 
 function containerLines(state: PlaygroundState): string[] {
+  // <ul>은 브라우저 기본으로 글머리 기호와 안쪽 여백이 붙어서 레이아웃용으로 쓸 때는 지움
+  const listReset =
+    state.containerTag === "ul"
+      ? ["  list-style: none;", "  margin: 0;", "  padding: 0;"]
+      : [];
   if (state.mode === "flex") {
     const { direction, wrap, justifyContent, alignItems, gap } = state.flex;
     return [
@@ -104,6 +109,7 @@ function containerLines(state: PlaygroundState): string[] {
       `  justify-content: ${justifyContent};`,
       `  align-items: ${alignItems};`,
       `  gap: ${gap}px;`,
+      ...listReset,
       "}",
     ];
   }
@@ -118,6 +124,7 @@ function containerLines(state: PlaygroundState): string[] {
     `  justify-items: ${justifyItems};`,
     `  align-items: ${alignItems};`,
     `  gap: ${gap}px;`,
+    ...listReset,
     "}",
   ];
 }
@@ -136,6 +143,15 @@ function flexItemLines(item: FlexItemSettings): string[] {
     ...(item.grow !== 0 ? [`  flex-grow: ${item.grow};`] : []),
     ...(item.alignSelf !== "auto" ? [`  align-self: ${item.alignSelf};`] : []),
   ];
+}
+
+// <a> 는 기본으로 파란 밑줄 글자라, 카드 안 글자색을 그대로 쓰도록 되돌린다.
+function linkRuleLines(state: PlaygroundState): string[] {
+  const hasLink = state.contents
+    .slice(0, state.boxCount)
+    .some((content) => content.tag === "a");
+  if (!hasLink) return [];
+  return ["", "a.item {", "  color: inherit;", "  text-decoration: none;", "}"];
 }
 
 function gridItemLines(item: GridItemSettings): string[] {
@@ -187,6 +203,7 @@ export function generateCss(
   return [
     ...containerLines(state),
     ...safeguardLines(state),
+    ...linkRuleLines(state),
     ...itemRuleLines(state),
     ...(withContent ? contentRuleLines(state) : []),
   ].join("\n");

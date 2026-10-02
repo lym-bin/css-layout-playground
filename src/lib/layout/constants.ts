@@ -22,6 +22,8 @@ import type {
   ItemSettings,
   JustifyContent,
   PlaygroundState,
+  ContainerTag,
+  ItemTag,
 } from "./types";
 
 export const FLEX_DIRECTIONS: readonly FlexDirection[] = [
@@ -90,6 +92,28 @@ export const GRID_ITEM_COLUMN_KINDS: readonly GridItemColumnKind[] = [
   "span",
   "full",
 ];
+export const CONTAINER_TAGS: readonly ContainerTag[] = [
+  "div",
+  "header",
+  "nav",
+  "section",
+  "ul",
+];
+export const ITEM_TAGS: readonly ItemTag[] = [
+  "div",
+  "header",
+  "nav",
+  "main",
+  "aside",
+  "footer",
+  "section",
+  "article",
+  "li",
+  "a",
+];
+
+// 콘텐츠에 tag가 없으면 이 값으로 본다.
+export const DEFAULT_ITEM_TAG: ItemTag = "div";
 
 export const DEFAULT_GRID_ITEM_COLUMN: Record<
   GridItemColumnKind,
@@ -171,4 +195,5 @@ export const INITIAL_STATE: PlaygroundState = {
   contents: DEFAULT_CONTENTS,
   // 기본은 꺼둠 = 브라우저 기본 동작 그대로 (버그가 보이는 상태)
   safeguards: { minWidthZero: false, wrapAnywhere: false },
+  containerTag: "div",
 };
