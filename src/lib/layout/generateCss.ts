@@ -153,7 +153,7 @@ function contentRuleLines(state: PlaygroundState): string[] {
 
   return [
     "",
-    " .item img{",
+    ".item img {",
     "  display: block;",
     "  width: 100%;",
     "  height: auto;",

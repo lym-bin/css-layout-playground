@@ -4,7 +4,7 @@
 // - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
 // - 박스를 클릭하면 선택(다시 클릭하면 해제) → ItemPanel 에서 개별 속성 조절
-// - 보기 방식(숫자/콘텐츠)은 출력 코드에도 양향을 주므로 부모에게서 받는다.
+// - 보기 방식(숫자/콘텐츠)은 출력 코드에도 영향을 주므로 부모에게서 받는다.
 
 import { useState } from "react";
 import { LIMITS } from "@/lib/layout/constants";
