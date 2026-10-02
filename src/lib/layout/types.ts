@@ -6,6 +6,8 @@
 // 런타임 코드는 없고 컴파일 타임 검사용
 // - 박스별 개별 속성(ItemSettings) 정의
 export type LayoutMode = "flex" | "grid";
+// 미리보기를 숫자로 볼지, 예시 콘텐츠로 볼지, 출력 HTML/CSS도 이 값에 따라 달라잔다.
+export type PreviewView = "number" | "content";
 
 export type FlexDirection = "row" | "row-reverse" | "column" | "column-reverse";
 export type FlexWrap = "nowrap" | "wrap" | "wrap-reverse";

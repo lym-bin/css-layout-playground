@@ -143,6 +143,33 @@ function itemRuleLines(state: PlaygroundState): string[] {
   });
 }
 
-export function generateCss(state: PlaygroundState): string {
-  return [...containerLines(state), ...itemRuleLines(state)].join("\n");
+// 이미지가 있는 박스가 하나라도 있으면 이미지 기본 규칙을 붙인다.
+// 미리보기의 이미지 자리(aspect-video)와 같은 16:9 비율,
+function contentRuleLines(state: PlaygroundState): string[] {
+  const hasImage = state.contents
+    .slice(0, state.boxCount)
+    .some((content) => content.image);
+  if (!hasImage) return [];
+
+  return [
+    "",
+    " .item img{",
+    "  display: block;",
+    "  width: 100%;",
+    "  height: auto;",
+    "  aspect-ratio: 16 / 9;",
+    "  object-fit: cover;",
+    "}",
+  ];
+}
+
+export function generateCss(
+  state: PlaygroundState,
+  withContent: boolean,
+): string {
+  return [
+    ...containerLines(state),
+    ...itemRuleLines(state),
+    ...(withContent ? contentRuleLines(state) : []),
+  ].join("\n");
 }

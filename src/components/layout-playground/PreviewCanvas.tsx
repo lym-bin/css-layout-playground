@@ -4,12 +4,16 @@
 // - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
 // - 박스를 클릭하면 선택(다시 클릭하면 해제) → ItemPanel 에서 개별 속성 조절
-// - 보기 방식과 미리보기 너비는 출력 코드와 무관한 "보기 설정"이라 이 컴포넌트 안에서만 관리한다.
+// - 보기 방식(숫자/콘텐츠)은 출력 코드에도 양향을 주므로 부모에게서 받는다.
 
 import { useState } from "react";
 import { LIMITS } from "@/lib/layout/constants";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
-import type { BoxContent, PlaygroundState } from "@/lib/layout/types";
+import type {
+  BoxContent,
+  PlaygroundState,
+  PreviewView,
+} from "@/lib/layout/types";
 
 // Tailwind는 소스 코드에 "완성된 문자열"로 적힌 클래스만 CSS로 만든다.
 // `bg-${color}-400` 처럼 조합하면 빌드 결과에 포함되지 않으므로 전부 풀어서 적는다.
@@ -34,8 +38,6 @@ const VIEWPORT_PRESETS = [
   { label: "가득", width: null },
 ] as const;
 
-type PreviewView = "number" | "content";
-
 const VIEW_OPTIONS = [
   { value: "number", label: "숫자" },
   { value: "content", label: "콘텐츠" },
@@ -52,15 +54,18 @@ interface PreviewCanvasProps {
   state: PlaygroundState;
   selectedIndex: number | null;
   onSelect: (index: number | null) => void;
+  view: PreviewView;
+  onViewChange: (view: PreviewView) => void;
 }
 
 export default function PreviewCanvas({
   state,
   selectedIndex,
   onSelect,
+  view,
+  onViewChange,
 }: PreviewCanvasProps) {
   const [width, setWidth] = useState<number | null>(null);
-  const [view, setView] = useState<PreviewView>("number");
 
   return (
     <div className="flex flex-col gap-3">
@@ -70,7 +75,7 @@ export default function PreviewCanvas({
             key={option.value}
             type="button"
             aria-pressed={view === option.value}
-            onClick={() => setView(option.value)}
+            onClick={() => onViewChange(option.value)}
             className={`${TOOLBAR_BUTTON} ${view === option.value ? TOOLBAR_ON : TOOLBAR_OFF}`}
           >
             {option.label}
