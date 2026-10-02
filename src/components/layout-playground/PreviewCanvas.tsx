@@ -32,11 +32,11 @@ const BOX_COLORS = [
 // 숫자 모드에서는 높이가 들쭉날쭉해야 align-items 차이가 보인다.
 const BOX_MIN_HEIGHTS = [56, 88, 64, 104, 72, 96, 60, 80];
 
-// null = 고정 너비 없이 영역을 가득 채움
+// 미리보기 기기 너비 프리셋(px), 데스크톱(1280)이 칸보다 넓으면 프레임 안에서 가로 스크롤 된다.
 const VIEWPORT_PRESETS = [
   { label: "모바일", width: 375 },
   { label: "태블릿", width: 768 },
-  { label: "가득", width: null },
+  { label: "데스크톱", width: 1280 },
 ] as const;
 
 const VIEW_OPTIONS = [
@@ -66,7 +66,7 @@ export default function PreviewCanvas({
   view,
   onViewChange,
 }: PreviewCanvasProps) {
-  const [width, setWidth] = useState<number | null>(null);
+  const [width, setWidth] = useState<number>(768);
 
   return (
     <div className="flex flex-col gap-3">
@@ -96,8 +96,7 @@ export default function PreviewCanvas({
             onClick={() => setWidth(preset.width)}
             className={`${TOOLBAR_BUTTON} ${width === preset.width ? TOOLBAR_ON : TOOLBAR_OFF}`}
           >
-            {preset.label}
-            {preset.width !== null && ` ${preset.width}`}
+            {preset.label} {preset.width}
           </button>
         ))}
         <input
@@ -105,21 +104,19 @@ export default function PreviewCanvas({
           aria-label="미리보기 너비"
           min={LIMITS.viewport.min}
           max={LIMITS.viewport.max}
-          value={width ?? LIMITS.viewport.max}
+          value={width}
           onChange={(e) => setWidth(Number(e.target.value))}
           className="min-w-32 flex-1 accent-zinc-800 dark:accent-zinc-200"
         />
         <span className="w-14 text-right font-mono text-xs text-zinc-500">
-          {width === null ? "가득" : `${width}px`}
+          {width}px
         </span>
       </div>
 
       <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
         <div
-          className={`mx-auto transition-[width] duration-200 ${
-            width === null ? "" : "ring-1 ring-zinc-300 dark:ring-zinc-700"
-          }`}
-          style={{ width: width ?? "100%" }}
+          className="mx-auto ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
+          style={{ width }}
         >
           <div className="min-h-80" style={toContainerStyle(state)}>
             {Array.from({ length: state.boxCount }, (_, i) => {

@@ -41,7 +41,7 @@ export default function LayoutPlayground() {
   };
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-6 p-6 lg:grid-cols-[320px_1fr]">
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 p-6 lg:grid-cols-[320px_minmax(0,1fr)]">
       <div className="flex flex-col gap-6">
         <PresetPanel onApply={applyPreset} />
         <ControlPanel state={state} setState={setState} />
@@ -61,7 +61,7 @@ export default function LayoutPlayground() {
           onViewChange={setView}
         />
         <MarkupCheck issues={issues} />
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           <CodeOutput title="HTML" code={generateHtml(state, withContent)} />
           <CodeOutput title="CSS" code={generateCss(state, withContent)} />
         </div>
