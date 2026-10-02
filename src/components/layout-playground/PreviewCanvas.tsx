@@ -17,6 +17,7 @@ import {
   DEFAULT_ITEM_TAG,
   LIMITS,
 } from "@/lib/layout/constants";
+import { flexAxes, type Axis } from "@/lib/layout/descriptions";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
 import { breakpointAt, resolveState } from "@/lib/layout/responsive";
 import type {
@@ -26,6 +27,7 @@ import type {
   PlaygroundState,
   PreviewView,
 } from "@/lib/layout/types";
+import { AXIS_TEXT, type AxisTone } from "./axisTone";
 
 // Tailwind는 소스 코드에 "완성된 문자열"로 적힌 클래스만 CSS로 만든다.
 // `bg-${color}-400` 처럼 조합하면 빌드 결과에 포함되지 않으므로 전부 풀어서 적는다.
@@ -88,6 +90,27 @@ export default function PreviewCanvas({
   onDevicePick,
 }: PreviewCanvasProps) {
   const applied = breakpointAt(width);
+  const resolved = resolveState(state, applied);
+
+  // flex 일 때만 축 화살표를 그린다. 가로 줄과 세로 줄에 각각 주축 / 교차축 중 무엇이 오는지 정한다.
+  let guides: { horizontal: AxisGuide; vertical: AxisGuide } | null = null;
+  if (state.mode === "flex") {
+    const { main, cross } = flexAxes(resolved.flex.direction, resolved.flex.wrap);
+    const mainGuide: AxisGuide = {
+      axis: main,
+      tone: "main",
+      label: "주축 · justify-content",
+    };
+    const crossGuide: AxisGuide = {
+      axis: cross,
+      tone: "cross",
+      label: "교차축 · align-items",
+    };
+    guides =
+      main.name === "가로"
+        ? { horizontal: mainGuide, vertical: crossGuide }
+        : { horizontal: crossGuide, vertical: mainGuide };
+  }
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -179,65 +202,114 @@ export default function PreviewCanvas({
       </p>
 
       <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-3 sm:p-4 dark:border-zinc-700 dark:bg-zinc-900">
-        <div
-          className="mx-auto ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
-          style={{ width }}
-        >
-          {/* 좁은 화면에서는 미리보기가 위에 고정되므로 높이를 줄여 조작 패널 자리를 남긴다. */}
-          <div
-            className="min-h-48 sm:min-h-80"
-            style={toContainerStyle(resolveState(state, applied))}
-          >
-            {Array.from({ length: state.boxCount }, (_, i) => {
-              const selected = i === selectedIndex;
-              const color = BOX_COLORS[i % BOX_COLORS.length];
-              const tag = state.contents[i].tag ?? DEFAULT_ITEM_TAG;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  aria-pressed={selected}
-                  aria-label={`박스 ${i + 1} 선택`}
-                  onClick={() => onSelect(selected ? null : i)}
-                  className={`flex cursor-pointer rounded-lg shadow ${
-                    view === "number"
-                      ? `${color} min-w-16 items-center justify-center px-4 font-mono text-lg font-bold text-white`
-                      : "flex-col bg-white text-left text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
-                  } ${
-                    selected
-                      ? "ring-4 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-900"
-                      : ""
-                  }`}
-                  style={{
-                    minHeight:
-                      view === "number"
-                        ? BOX_MIN_HEIGHTS[i % BOX_MIN_HEIGHTS.length]
-                        : undefined,
-                    ...toItemStyle(state, i),
-                  }}
-                >
-                  {view === "number" ? (
-                    <span className="flex flex-col items-center leading-tight">
-                      {i + 1}
-                      {tag !== "div" && (
-                        <span className="font-mono text-[10px] font-normal opacity-80">
-                          &lt;{tag}&gt;
+        <div className="mx-auto w-fit">
+          {guides && <AxisLine guide={guides.horizontal} width={width} />}
+          <div className="flex">
+            {guides && <AxisLine guide={guides.vertical} vertical />}
+            <div
+              className="ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
+              style={{ width }}
+            >
+              {/* 좁은 화면에서는 미리보기가 위에 고정되므로 높이를 줄여 조작 패널 자리를 남긴다. */}
+              <div
+                className="min-h-48 sm:min-h-80"
+                style={toContainerStyle(resolved)}
+              >
+                {Array.from({ length: state.boxCount }, (_, i) => {
+                  const selected = i === selectedIndex;
+                  const color = BOX_COLORS[i % BOX_COLORS.length];
+                  const tag = state.contents[i].tag ?? DEFAULT_ITEM_TAG;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      aria-pressed={selected}
+                      aria-label={`박스 ${i + 1} 선택`}
+                      onClick={() => onSelect(selected ? null : i)}
+                      className={`flex cursor-pointer rounded-lg shadow ${
+                        view === "number"
+                          ? `${color} min-w-16 items-center justify-center px-4 font-mono text-lg font-bold text-white`
+                          : "flex-col bg-white text-left text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
+                      } ${
+                        selected
+                          ? "ring-4 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-900"
+                          : ""
+                      }`}
+                      style={{
+                        minHeight:
+                          view === "number"
+                            ? BOX_MIN_HEIGHTS[i % BOX_MIN_HEIGHTS.length]
+                            : undefined,
+                        ...toItemStyle(state, i),
+                      }}
+                    >
+                      {view === "number" ? (
+                        <span className="flex flex-col items-center leading-tight">
+                          {i + 1}
+                          {tag !== "div" && (
+                            <span className="font-mono text-[10px] font-normal opacity-80">
+                              &lt;{tag}&gt;
+                            </span>
+                          )}
                         </span>
+                      ) : (
+                        <ContentBody
+                          content={state.contents[i]}
+                          color={color}
+                          tag={tag}
+                        />
                       )}
-                    </span>
-                  ) : (
-                    <ContentBody
-                      content={state.contents[i]}
-                      color={color}
-                      tag={tag}
-                    />
-                  )}
-                </button>
-              );
-            })}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface AxisGuide {
+  axis: Axis;
+  tone: AxisTone;
+  label: string;
+}
+
+// flex 일 때 미리보기 위(가로)와 왼쪽(세로)에 그리는 축 화살표 하나.
+// 화살표 머리는 박스가 놓이는 방향(→ ← ↓ ↑)을 가리킨다. 그림일 뿐이라 aria-hidden.
+function AxisLine({
+  guide,
+  vertical = false,
+  width,
+}: {
+  guide: AxisGuide;
+  vertical?: boolean;
+  width?: number;
+}) {
+  const { axis, tone, label } = guide;
+  const backward = axis.arrow === "←" || axis.arrow === "↑";
+  const head = vertical ? (backward ? "▲" : "▼") : backward ? "◀" : "▶";
+  const line = vertical ? "w-px flex-1 bg-current" : "h-px flex-1 bg-current";
+
+  return (
+    <div
+      aria-hidden
+      className={`flex items-center gap-1.5 text-[11px] font-semibold ${AXIS_TEXT[tone]} ${
+        vertical ? "mr-2 w-5 shrink-0 flex-col" : "mb-2 ml-7 h-5"
+      }`}
+      style={vertical ? undefined : { width }}
+    >
+      {backward && <span className="text-[9px] leading-none">{head}</span>}
+      <span className={line} />
+      <span
+        className={`whitespace-nowrap ${vertical ? "[writing-mode:vertical-rl]" : ""}`}
+      >
+        {label}
+      </span>
+      <span className={line} />
+      {!backward && <span className="text-[9px] leading-none">{head}</span>}
     </div>
   );
 }

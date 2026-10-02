@@ -6,9 +6,11 @@
 // - 복사 버튼: 클립보드에 원래 코드 문자열을 복사하고 잠깐 "복사됨" / "복사 실패" 표시 후 원래대로
 // - highlighted 로 받은 줄 번호는 배경색으로 강조 (CSS 에서 지금 적용 중인 @media 블록 표시용)
 // - note 가 있으면 코드 아래에 안내 한 줄 (예: @media 가 아직 없을 때 만드는 방법)
+// - 코드가 바뀌면 새로 생기거나 달라진 줄을 잠깐 노랗게 칠한다. ("방금 바뀜", globals.css 의 code-flash)
 
 import { useRef, useState } from "react";
 import {
+  changedLines,
   highlightCssLine,
   highlightHtmlLine,
   type TokenType,
@@ -34,6 +36,9 @@ const TOKEN_COLOR: Record<TokenType, string> = {
   attr: "text-sky-300",
   string: "text-amber-200",
 };
+
+// 한 번에 이보다 많이 바뀌면(모드 전환, 프리셋 등) 줄마다 붙는 "방금 바뀜" 글자는 생략한다.
+const MAX_FLASH_LABELS = 3;
 
 const HIGHLIGHTERS = {
   html: highlightHtmlLine,
@@ -61,6 +66,23 @@ export default function CodeOutput({
   const [status, setStatus] = useState<CopyStatus>("idle");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlight = HIGHLIGHTERS[language];
+
+  // 이전 코드와 비교해서 바뀐 줄을 찾는다.
+  // useEffect 로 하면 한 번 그린 뒤 다시 그려야 해서, 렌더링 중에 "이전 값"을 상태로 들고 비교한다.
+  // version 은 같은 줄이 연달아 바뀌어도 애니메이션이 처음부터 다시 돌도록 key 에 쓴다.
+  const [prevCode, setPrevCode] = useState(code);
+  const [flash, setFlash] = useState({
+    lines: new Set<number>(),
+    version: 0,
+  });
+  if (code !== prevCode) {
+    setPrevCode(code);
+    setFlash((f) => ({
+      lines: changedLines(prevCode, code),
+      version: f.version + 1,
+    }));
+  }
+  const showFlashLabel = flash.lines.size <= MAX_FLASH_LABELS;
 
   const handleCopy = async () => {
     try {
@@ -99,29 +121,43 @@ export default function CodeOutput({
       </div>
       <pre className="overflow-x-auto py-4 pr-5 font-mono text-[13px] leading-6">
         <code className="block w-fit min-w-full">
-          {code.split("\n").map((line, i) => (
-            <span
-              key={i}
-              className={`flex ${highlighted?.has(i) ? "bg-sky-500/15" : ""}`}
-            >
+          {code.split("\n").map((line, i) => {
+            const flashed = flash.lines.has(i);
+            return (
               <span
-                aria-hidden
-                className="w-10 shrink-0 select-none pr-4 text-right text-zinc-600"
+                // 바뀐 줄은 key 를 바꿔서 새로 그리게 해야 애니메이션이 다시 시작된다.
+                key={flashed ? `${i}-v${flash.version}` : `${i}`}
+                className={`flex ${highlighted?.has(i) ? "bg-sky-500/15" : ""} ${
+                  flashed ? "code-flash" : ""
+                }`}
               >
-                {i + 1}
+                <span
+                  aria-hidden
+                  className="w-10 shrink-0 select-none pr-4 text-right text-zinc-600"
+                >
+                  {i + 1}
+                </span>
+                {/* 빈 줄은 높이가 0이 되지 않게 공백 하나를 넣는다. */}
+                <span className="whitespace-pre">
+                  {line === ""
+                    ? " "
+                    : highlight(line).map((token, j) => (
+                        <span key={j} className={TOKEN_COLOR[token.type]}>
+                          {token.text}
+                        </span>
+                      ))}
+                </span>
+                {flashed && showFlashLabel && (
+                  <span
+                    aria-hidden
+                    className="code-flash-label ml-3 select-none self-center rounded bg-amber-400/20 px-1.5 font-sans text-[11px] leading-5 text-amber-300"
+                  >
+                    방금 바뀜
+                  </span>
+                )}
               </span>
-              {/* 빈 줄은 높이가 0이 되지 않게 공백 하나를 넣는다. */}
-              <span className="whitespace-pre">
-                {line === ""
-                  ? " "
-                  : highlight(line).map((token, j) => (
-                      <span key={j} className={TOKEN_COLOR[token.type]}>
-                        {token.text}
-                      </span>
-                    ))}
-              </span>
-            </span>
-          ))}
+            );
+          })}
         </code>
       </pre>
       {note && (

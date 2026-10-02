@@ -17,14 +17,31 @@ import type {
   JustifyContent,
 } from "./types";
 
-// flex-direction 에 따라 주축 / 교차축이 가로인지 세로인지
-export function flexAxes(direction: FlexDirection): {
-  main: string;
-  cross: string;
-} {
+export interface Axis {
+  // 화면에서 가로인지 세로인지
+  name: "가로" | "세로";
+  // 박스가 놓이는 방향 (→ ← ↓ ↑)
+  arrow: "→" | "←" | "↓" | "↑";
+}
+
+// flex-direction / flex-wrap 에 따라 주축 / 교차축이 어느 쪽이고 어느 방향으로 흐르는지.
+// - 주축: direction 이 row 면 가로, column 이면 세로. -reverse 면 반대 방향.
+// - 교차축: 주축과 직각. wrap-reverse 면 줄이 반대 방향으로 쌓인다.
+export function flexAxes(
+  direction: FlexDirection,
+  wrap: FlexWrap = "nowrap",
+): { main: Axis; cross: Axis } {
+  const reversed = direction.endsWith("reverse");
+  const crossReversed = wrap === "wrap-reverse";
   return direction.startsWith("row")
-    ? { main: "가로", cross: "세로" }
-    : { main: "세로", cross: "가로" };
+    ? {
+        main: { name: "가로", arrow: reversed ? "←" : "→" },
+        cross: { name: "세로", arrow: crossReversed ? "↑" : "↓" },
+      }
+    : {
+        main: { name: "세로", arrow: reversed ? "↑" : "↓" },
+        cross: { name: "가로", arrow: crossReversed ? "←" : "→" },
+      };
 }
 
 export const FLEX_DIRECTION_HINTS: Record<FlexDirection, string> = {

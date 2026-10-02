@@ -24,3 +24,42 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 출력 코드에서 "방금 바뀜" 줄을 잠깐 노랗게 칠했다가 사라지게 한다. (CodeOutput) */
+@keyframes code-flash {
+  from {
+    background-color: rgb(251 191 36 / 0.3);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes code-flash-label {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.code-flash {
+  animation: code-flash 1.8s ease-out;
+}
+
+.code-flash-label {
+  animation: code-flash-label 1.8s ease-out forwards;
+}
+
+/* 움직임을 줄여 달라고 설정한 사용자에게는 깜빡임 없이 표시도 하지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  .code-flash,
+  .code-flash-label {
+    animation: none;
+  }
+  .code-flash-label {
+    display: none;
+  }
+}

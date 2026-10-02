@@ -3,6 +3,7 @@
 // - 범용 하이라이터가 아니라, generateCss / generateHtml 이 만드는 정해진 모양만 다룬다.
 //   (CSS 는 한 줄에 선택자 / 선언 / 닫는 괄호 중 하나, HTML 은 태그와 글자)
 // - 조각을 다시 이어 붙이면 원래 줄과 똑같아야 한다. (색만 입히고 글자는 건드리지 않음)
+// - changedLines: 코드가 바뀌었을 때 새로 생기거나 달라진 줄 찾기 ("방금 바뀜" 표시)
 
 export type TokenType =
   | "plain"
@@ -101,5 +102,17 @@ export function highlightHtmlLine(line: string): Token[] {
   }
 
   result.push(...tokens(["plain", line.slice(last)]));
+  return result;
+}
+
+// 이전 코드에 없던 줄의 번호(새 코드 기준, 0부터). "방금 바뀜" 표시용.
+// 값만 바뀐 줄(gap: 12px → gap: 16px)도 글자가 달라서 새 줄로 잡힌다.
+export function changedLines(prev: string, next: string): Set<number> {
+  if (prev === next) return new Set();
+  const before = new Set(prev.split("\n"));
+  const result = new Set<number>();
+  next.split("\n").forEach((line, i) => {
+    if (line.trim() !== "" && !before.has(line)) result.add(i);
+  });
   return result;
 }

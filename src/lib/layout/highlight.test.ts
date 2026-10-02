@@ -1,12 +1,17 @@
 // src/lib/layout/highlight.test.ts
-// highlightCssLine / highlightHtmlLine 테스트.
+// highlightCssLine / highlightHtmlLine / changedLines 테스트.
 // - 조각을 이어 붙이면 원래 줄과 같아야 한다 (모든 프리셋의 출력 코드로 검사)
 // - 대표적인 줄은 어떤 종류로 나뉘는지 정확히 비교한다.
 
 import { describe, expect, test } from "vitest";
 import { generateCss } from "./generateCss";
 import { generateHtml } from "./generateHtml";
-import { highlightCssLine, highlightHtmlLine, type Token } from "./highlight";
+import {
+  changedLines,
+  highlightCssLine,
+  highlightHtmlLine,
+  type Token,
+} from "./highlight";
 import { PRESETS } from "./presets";
 import type { PlaygroundState } from "./types";
 
@@ -103,5 +108,23 @@ describe("모든 프리셋 출력은 조각을 이으면 원래 줄과 같다", 
         true,
       );
     }
+  });
+});
+
+describe("changedLines", () => {
+  test("값이 바뀐 줄만 잡는다", () => {
+    const prev = ".container {\n  gap: 12px;\n}";
+    const next = ".container {\n  gap: 16px;\n}";
+    expect([...changedLines(prev, next)]).toEqual([1]);
+  });
+
+  test("새로 생긴 블록은 빈 줄을 빼고 전부 잡는다", () => {
+    const prev = ".container {\n}";
+    const next = ".container {\n}\n\na.item {\n  color: inherit;\n}";
+    expect([...changedLines(prev, next)]).toEqual([3, 4]);
+  });
+
+  test("같으면 비어 있다", () => {
+    expect(changedLines("a", "a").size).toBe(0);
   });
 });

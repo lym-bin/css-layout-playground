@@ -119,7 +119,7 @@ export default function ControlPanel({
   );
 
   const { columns, rows } = shown.grid;
-  const axes = flexAxes(shown.flex.direction);
+  const axes = flexAxes(shown.flex.direction, shown.flex.wrap);
   const safeguardOn =
     state.safeguards.minWidthZero || state.safeguards.wrapAnywhere;
   return (
@@ -198,7 +198,8 @@ export default function ControlPanel({
               "flex",
               "justifyContent",
               <ChoiceControl
-                label={`주축 정렬 (지금은 ${axes.main})`}
+                label="주축 정렬"
+                axis={{ axis: axes.main, tone: "main" }}
                 code="justify-content"
                 hint={JUSTIFY_CONTENT_HINTS[shown.flex.justifyContent]}
                 value={shown.flex.justifyContent}
@@ -210,7 +211,8 @@ export default function ControlPanel({
               "flex",
               "alignItems",
               <ChoiceControl
-                label={`교차축 정렬 (지금은 ${axes.cross})`}
+                label="교차축 정렬"
+                axis={{ axis: axes.cross, tone: "cross" }}
                 code="align-items"
                 hint={FLEX_ALIGN_ITEMS_HINTS[shown.flex.alignItems]}
                 value={shown.flex.alignItems}

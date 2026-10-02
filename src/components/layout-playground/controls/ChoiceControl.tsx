@@ -1,14 +1,15 @@
 // src/components/layout-playground/controls/ChoiceControl.tsx
 // 선택지가 몇 개 안 되는 값을 알약(pill) 버튼으로 한 번에 펼쳐 보여주는 컨트롤.
 // - 드롭다운은 눌러야 선택지가 보이지만, 이건 고를 수 있는 값이 전부 보여서 비교하기 쉽다.
-// - 이름(한국어) + CSS 속성 태그 + 알약 버튼들 + 지금 고른 값의 한 줄 설명
+// - 이름(한국어) + (있으면) 축 배지 + CSS 속성 태그 + 알약 버튼들 + 지금 고른 값의 한 줄 설명
 // - 라디오 버튼과 같은 역할이라 role="radiogroup" / "radio" 와 aria-checked 를 붙인다.
 
-import { ControlHint, ControlLabel } from "./ControlLabel";
+import { ControlHint, ControlLabel, type AxisBadge } from "./ControlLabel";
 
 interface ChoiceControlProps<T extends string> {
   label: string;
   code?: string;
+  axis?: AxisBadge;
   hint?: string;
   value: T;
   options: readonly T[];
@@ -18,6 +19,7 @@ interface ChoiceControlProps<T extends string> {
 export default function ChoiceControl<T extends string>({
   label,
   code,
+  axis,
   hint,
   value,
   options,
@@ -25,7 +27,7 @@ export default function ChoiceControl<T extends string>({
 }: ChoiceControlProps<T>) {
   return (
     <div className="flex flex-col gap-2">
-      <ControlLabel label={label} code={code} />
+      <ControlLabel label={label} code={code} axis={axis} />
       <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5">
         {options.map((option) => {
           const checked = option === value;
