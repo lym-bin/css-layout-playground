@@ -1,9 +1,9 @@
 // src/lib/layout/constants.ts
-
 // 변하지 않는 설정 값 모음.
 // - 드롭다운 선택지 배열(type은 런타임에 사라지므로 실제 값 배열이 필요)
 // - 슬라이더 최솟값/최댓값 (LIMITS)
 // - 초기 상태 (INITIAL_STATE) -> useState 시작값 + Reset 버튼에서 사용
+// - 미디어쿼리 구간 (BREAKPOINTS, BREAKPOINT_MIN_WIDTH, BREAKPOINT_LABELS)
 
 // 타입만 가져오기
 import type {
@@ -24,6 +24,9 @@ import type {
   PlaygroundState,
   ContainerTag,
   ItemTag,
+  Breakpoint,
+  BreakpointOverride,
+  MediaBreakpoint,
 } from "./types";
 
 export const FLEX_DIRECTIONS: readonly FlexDirection[] = [
@@ -160,6 +163,24 @@ export const DEFAULT_CONTENTS: BoxContent[] = [
   },
 ];
 
+// 미디어쿼리 구간 순서 (작은 폭 -> 큰 폭). 덮어쓰기는 이 순서대로 쌓인다
+export const BREAKPOINTS: readonly Breakpoint[] = ["base", "md", "lg"];
+
+// 각 구간이 시작되는 폭, @media (min-width: ...)에 그대로 들어간다.
+export const BREAKPOINT_MIN_WIDTH: Record<MediaBreakpoint, number> = {
+  md: 768,
+  lg: 1024,
+};
+
+export const BREAKPOINT_LABELS: Record<Breakpoint, string> = {
+  base: "기본",
+  md: "768px 이상",
+  lg: "1024px 이상",
+};
+
+// 아무것도 덮어쓰지 않은 구간
+export const EMPTY_OVERRIDE: BreakpointOverride = { flex: {}, grid: {} };
+
 // 슬라이더 최솟값과 최댓값
 // as const로 설정값 명시
 export const LIMITS = {
@@ -196,4 +217,6 @@ export const INITIAL_STATE: PlaygroundState = {
   // 기본은 꺼둠 = 브라우저 기본 동작 그대로 (버그가 보이는 상태)
   safeguards: { minWidthZero: false, wrapAnywhere: false },
   containerTag: "div",
+  // 처음엔 모든 구간이 비어 있음 = 미디어쿼리 없음
+  responsive: { md: EMPTY_OVERRIDE, lg: EMPTY_OVERRIDE },
 };

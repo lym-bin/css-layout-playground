@@ -5,6 +5,8 @@
 // - 전체 상태(PlaygroundState) 구조 정의
 // 런타임 코드는 없고 컴파일 타임 검사용
 // - 박스별 개별 속성(ItemSettings) 정의
+// - 미디어쿼리 구간(Breakpoint)과 구간별 덮어쓰기(BreakpointOverride) 정의
+
 export type LayoutMode = "flex" | "grid";
 // 미리보기를 숫자로 "ㅇ볼지, 예시 콘텐츠로 볼지, 출력 HTML/CSS도 이 값에 따라 달라잔다.
 export type PreviewView = "number" | "content";
@@ -91,6 +93,19 @@ export interface SafeguardSettings {
   minWidthZero: boolean;
   wrapAnywhere: boolean;
 }
+// 미디어쿼리 구간, 모바일 우선(mobile-first)이라 base(미디어 쿼리 없음)가 기본이고
+// md / lg는 "이 폭 이상" 일 때 base 위에 값을 덮어 쓴다.
+export type Breakpoint = "base" | "md" | "lg";
+
+// 덮어쓰기가 가능한 구간, base는 원래 설정(flex / grid) 그 자체라 뺀다.
+export type MediaBreakpoint = Exclude<Breakpoint, "base">;
+
+// 한 구간에서 "바꾼 컨테이너 값만" 담는다.
+// 비어 있으면 ({}) 그 구간은 미디어쿼리를 출력하지 않는다.
+export interface BreakpointOverride {
+  flex: Partial<FlexSettings>;
+  grid: Partial<GridSettings>;
+}
 export interface PlaygroundState {
   mode: LayoutMode;
   boxCount: number;
@@ -100,4 +115,6 @@ export interface PlaygroundState {
   contents: BoxContent[];
   safeguards: SafeguardSettings;
   containerTag: ContainerTag;
+  // 구간별 덮어쓰기, base 값은 위의 flex / grid를 그대로 쓴다.
+  responsive: Record<MediaBreakpoint, BreakpointOverride>;
 }
