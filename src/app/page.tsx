@@ -7,7 +7,7 @@ import LayoutPlayground from "@/components/layout-playground/LayoutPlayground";
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col bg-zinc-100 dark:bg-black">
+    <main className="flex flex-1 flex-col bg-background">
       <LayoutPlayground />
     </main>
   );

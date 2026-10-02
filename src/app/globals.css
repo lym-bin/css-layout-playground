@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
+/* 색 토큰. 밝은 / 어두운 화면 값을 여기서만 바꾸고, 컴포넌트는 bg-background, text-axis-main 처럼 이름으로 쓴다. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* 페이지 바탕 (흰 카드가 떠 보이도록 아주 옅은 회색) */
+  --background: #f4f4f5;
+  --foreground: #18181b;
+  /* 주축 / 교차축 (미리보기 화살표, 컨트롤 배지) */
+  --axis-main: #2554d9;
+  --axis-cross: #c2410c;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #000000;
     --foreground: #ededed;
+    --axis-main: #7aa2ff;
+    --axis-cross: #fb923c;
   }
 }
 
+/* inline: 토큰 값을 복사하지 않고 var() 그대로 참조해서, 위의 다크 모드 값이 바로 반영된다. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-axis-main: var(--axis-main);
+  --color-axis-cross: var(--axis-cross);
+  /* layout.tsx 에서 next/font 가 만든 변수. 글꼴을 못 받았을 때를 위해 시스템 글꼴을 뒤에 둔다. */
+  --font-sans:
+    var(--font-plex-sans-kr), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+/* 글꼴은 Tailwind 기본 스타일이 html 에 font-sans 를 걸어서 따로 적지 않는다.
+   keep-all: 한글을 글자 단위가 아니라 띄어쓰기 단위로 줄바꿈해서 "바로"가 "바 / 로"로 단어가 끊기지 않게 한다. */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  word-break: keep-all;
 }
 
 /* 출력 코드에서 "방금 바뀜" 줄을 잠깐 노랗게 칠했다가 사라지게 한다. (CodeOutput) */

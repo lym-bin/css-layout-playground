@@ -105,8 +105,10 @@ export default function LayoutPlayground() {
 
   return (
     <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <header className="flex flex-wrap items-end justify-between gap-4 lg:col-span-2">
-        <div>
+      {/* 768px 이상이면 제목 | 모드 전환을 한 줄에 양 끝으로, 그보다 좁으면 전환 버튼이 제목 아래로 내려간다.
+          (640px 쯤에서 한 줄에 두면 설명 문장이 좁은 칸에서 어색하게 줄바꿈된다) */}
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between lg:col-span-2">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">
             CSS Layout Playground
           </h1>
@@ -114,22 +116,25 @@ export default function LayoutPlayground() {
             값을 바꾸면 미리보기와 HTML / CSS 코드가 바로 바뀝니다.
           </p>
         </div>
-        <div className="flex rounded-lg bg-zinc-200 p-1 dark:bg-zinc-900">
+        {/* 좁은 화면: 두 버튼이 반씩 나눠 가득 채우고, 이름 아래 줄에 설명을 둔다 (글자가 중간에 끊기지 않게).
+            sm 이상: 내용 폭만큼만 차지하고 이름 · 설명을 한 줄로. */}
+        <div className="flex w-full shrink-0 rounded-lg bg-zinc-200 p-1 sm:w-fit dark:bg-zinc-900">
           {MODES.map(({ mode, label, sub }) => (
             <button
               key={mode}
               type="button"
               aria-pressed={state.mode === mode}
               onClick={() => setState((s) => ({ ...s, mode }))}
-              className={`rounded-md px-4 py-1.5 text-sm font-semibold transition-colors ${
+              className={`flex flex-1 flex-col items-center whitespace-nowrap rounded-md px-4 py-1.5 text-sm font-semibold transition-colors sm:flex-none sm:flex-row sm:gap-1.5 ${
                 state.mode === mode
                   ? "bg-white shadow-sm dark:bg-zinc-700"
                   : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               }`}
             >
               {label}
-              <span className="ml-1.5 font-normal text-zinc-500 dark:text-zinc-400">
-                · {sub}
+              <span className="text-xs font-normal text-zinc-500 sm:text-sm dark:text-zinc-400">
+                <span className="hidden sm:inline">· </span>
+                {sub}
               </span>
             </button>
           ))}
@@ -147,7 +152,7 @@ export default function LayoutPlayground() {
       {/* 좁은 화면에서는 이 묶음 안에서만 미리보기가 고정된다(패널을 다 내리면 같이 올라감).
           넓은 화면에서는 lg:contents 로 묶음 자체가 사라지고 두 자식이 바깥 grid 칸에 직접 놓인다. */}
       <div className="flex flex-col gap-4 sm:gap-6 lg:contents">
-        <div className="sticky top-0 z-10 -mx-4 bg-zinc-100/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:col-start-2 lg:row-start-3 lg:mx-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none dark:bg-black/95 lg:dark:bg-transparent">
+        <div className="sticky top-0 z-10 -mx-4 bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:col-start-2 lg:row-start-3 lg:mx-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
           <PreviewCanvas
             state={state}
             selectedIndex={activeIndex}

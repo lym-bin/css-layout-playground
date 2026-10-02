@@ -1,6 +1,6 @@
 // src/components/layout-playground/PreviewCanvas.tsx
 // 오른쪽 위 미리보기 영역. (흰 카드 하나로 감싸서 패널 / 코드 영역과 경계를 나눈다)
-// - 위: 보기 전환(숫자 / 콘텐츠) + 미리보기 너비 툴바 (기기 너비 버튼 + 슬라이더)
+// - 위: 툴바 두 묶음 (왼쪽 "보기": 숫자 / 콘텐츠, 오른쪽 "화면 너비": 기기 버튼 + 슬라이더 + 적용 구간)
 // - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
 // - 컨테이너는 미리보기 폭이 속한 구간(@media)의 덮어쓰기까지 반영한 상태(resolveState)로 그린다.
@@ -17,6 +17,7 @@ import {
   DEFAULT_ITEM_TAG,
   LIMITS,
 } from "@/lib/layout/constants";
+import type { ReactNode } from "react";
 import { flexAxes, type Axis } from "@/lib/layout/descriptions";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
 import { breakpointAt, resolveState } from "@/lib/layout/responsive";
@@ -59,14 +60,16 @@ const VIEW_OPTIONS = [
   { value: "content", label: "실제 콘텐츠" },
 ] as const;
 
-const TOOLBAR_GROUP_LABEL = "text-xs font-medium text-zinc-500 dark:text-zinc-400";
-
-const TOOLBAR_BUTTON =
-  "rounded-md border px-2.5 py-1 text-xs transition-colors";
-const TOOLBAR_ON =
-  "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900";
-const TOOLBAR_OFF =
-  "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900";
+// 툴바 버튼은 맨 위 Flexbox / Grid 전환과 같은 "세그먼트" 모양(회색 홈 안에서 고른 칸만 흰색으로 떠오름).
+// 패널의 알약 버튼(값 고르기)과 모양을 달리해서 "보기 설정"이라는 걸 구분한다.
+const SEGMENT_TRACK =
+  "inline-flex rounded-md bg-zinc-200/70 p-0.5 dark:bg-zinc-800";
+const SEGMENT_BUTTON =
+  "whitespace-nowrap rounded px-2.5 py-1 text-xs font-medium transition-colors";
+const SEGMENT_ON =
+  "bg-white text-zinc-900 shadow-sm dark:bg-zinc-600 dark:text-white";
+const SEGMENT_OFF =
+  "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100";
 
 interface PreviewCanvasProps {
   state: PlaygroundState;
@@ -116,68 +119,74 @@ export default function PreviewCanvas({
     <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
       {/* 좁은 화면에서는 위에 고정되므로 제목을 빼서 높이를 아낀다. */}
       <h2 className="hidden text-base font-semibold sm:block">미리보기</h2>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className={TOOLBAR_GROUP_LABEL}>보기</span>
-        {VIEW_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={view === option.value}
-            onClick={() => onViewChange(option.value)}
-            className={`${TOOLBAR_BUTTON} ${view === option.value ? TOOLBAR_ON : TOOLBAR_OFF}`}
-          >
-            {option.label}
-          </button>
-        ))}
+      {/* 툴바: 왼쪽은 "무엇을 보여줄지", 오른쪽은 "얼마나 넓게 볼지".
+          역할이 다른 두 묶음을 각자 연한 상자에 넣고, 넓은 화면에서는 양 끝으로 벌린다. */}
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+        <ToolbarGroup label="보기">
+          <div className={SEGMENT_TRACK}>
+            {VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={view === option.value}
+                onClick={() => onViewChange(option.value)}
+                className={`${SEGMENT_BUTTON} ${view === option.value ? SEGMENT_ON : SEGMENT_OFF}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </ToolbarGroup>
 
-        <span
-          className="mx-1 h-4 w-px bg-zinc-300 dark:bg-zinc-700"
-          aria-hidden
-        />
-
-        <span className={TOOLBAR_GROUP_LABEL}>화면 너비</span>
-        {BREAKPOINTS.map((bp) => {
-          const deviceWidth = BREAKPOINT_PREVIEW_WIDTH[bp];
-          return (
-            <button
-              key={bp}
-              type="button"
-              aria-pressed={width === deviceWidth}
-              onClick={() => onDevicePick(bp)}
-              className={`${TOOLBAR_BUTTON} ${width === deviceWidth ? TOOLBAR_ON : TOOLBAR_OFF}`}
+        <ToolbarGroup label="화면 너비" className="lg:max-w-xl lg:flex-1">
+          <div className={SEGMENT_TRACK}>
+            {BREAKPOINTS.map((bp) => {
+              const deviceWidth = BREAKPOINT_PREVIEW_WIDTH[bp];
+              return (
+                <button
+                  key={bp}
+                  type="button"
+                  aria-pressed={width === deviceWidth}
+                  onClick={() => onDevicePick(bp)}
+                  className={`${SEGMENT_BUTTON} ${width === deviceWidth ? SEGMENT_ON : SEGMENT_OFF}`}
+                >
+                  {DEVICE_LABELS[bp]}
+                  {/* 좁은 화면에서는 숫자를 빼서 한 줄에 들어가게 한다 (슬라이더 옆에 px 가 따로 나옴) */}
+                  <span className="hidden sm:inline"> {deviceWidth}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex min-w-40 flex-1 items-center gap-2">
+            <input
+              type="range"
+              aria-label="미리보기 너비"
+              min={LIMITS.viewport.min}
+              max={LIMITS.viewport.max}
+              value={width}
+              onChange={(e) => onWidthChange(Number(e.target.value))}
+              className="min-w-0 flex-1 accent-zinc-800 dark:accent-zinc-200"
+            />
+            <span className="w-14 text-right font-mono text-xs text-zinc-600 dark:text-zinc-400">
+              {width}px
+            </span>
+          </div>
+          <p className="basis-full text-xs text-zinc-500 dark:text-zinc-400">
+            이 폭에 적용되는 구간:{" "}
+            <span
+              className={
+                applied === "base"
+                  ? "font-medium text-zinc-700 dark:text-zinc-300"
+                  : "font-medium text-sky-700 dark:text-sky-400"
+              }
             >
-              {DEVICE_LABELS[bp]} {deviceWidth}
-            </button>
-          );
-        })}
-        <input
-          type="range"
-          aria-label="미리보기 너비"
-          min={LIMITS.viewport.min}
-          max={LIMITS.viewport.max}
-          value={width}
-          onChange={(e) => onWidthChange(Number(e.target.value))}
-          className="min-w-32 flex-1 accent-zinc-800 dark:accent-zinc-200"
-        />
-        <span className="w-14 text-right font-mono text-xs text-zinc-500">
-          {width}px
-        </span>
+              {applied === "base"
+                ? "기본 (미디어쿼리 없음)"
+                : `@media ${BREAKPOINT_LABELS[applied]}`}
+            </span>
+          </p>
+        </ToolbarGroup>
       </div>
-
-      <p className="text-xs text-zinc-500">
-        이 폭에 적용되는 구간:{" "}
-        <span
-          className={
-            applied === "base"
-              ? "font-medium text-zinc-700 dark:text-zinc-300"
-              : "font-medium text-sky-700 dark:text-sky-400"
-          }
-        >
-          {applied === "base"
-            ? "기본 (미디어쿼리 없음)"
-            : `@media ${BREAKPOINT_LABELS[applied]}`}
-        </span>
-      </p>
 
       {/* 박스 클릭 기능은 눈에 안 띄어서, 미리보기 바로 위에서 알려준다. */}
       {/* 좁은 화면에서는 미리보기가 고정되므로 괄호 속 부연 설명은 숨겨서 한 줄로 줄인다. */}
@@ -207,10 +216,12 @@ export default function PreviewCanvas({
           <div className="flex">
             {guides && <AxisLine guide={guides.vertical} vertical />}
             <div
-              className="ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
+              className="break-normal ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
               style={{ width }}
             >
-              {/* 좁은 화면에서는 미리보기가 위에 고정되므로 높이를 줄여 조작 패널 자리를 남긴다. */}
+              {/* 좁은 화면에서는 미리보기가 위에 고정되므로 높이를 줄여 조작 패널 자리를 남긴다.
+                  break-normal: 화면 글자에 건 단어 단위 줄바꿈(keep-all)이 미리보기에는 안 걸리게 되돌린다.
+                  미리보기는 출력 CSS 와 똑같이 브라우저 기본 줄바꿈으로 보여야 하기 때문. */}
               <div
                 className="min-h-48 sm:min-h-80"
                 style={toContainerStyle(resolved)}
@@ -267,6 +278,30 @@ export default function PreviewCanvas({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// 툴바에서 역할이 같은 컨트롤끼리 묶는 연한 상자. 왼쪽에 묶음 이름을 붙인다.
+function ToolbarGroup({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className={`flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900/60 ${className}`}
+    >
+      <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+        {label}
+      </span>
+      {children}
     </div>
   );
 }
