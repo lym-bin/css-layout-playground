@@ -1,11 +1,11 @@
 // src/components/layout-playground/PreviewCanvas.tsx
-// 오른쪽 위 미리보기 영역.
+// 오른쪽 위 미리보기 영역. (흰 카드 하나로 감싸서 패널 / 코드 영역과 경계를 나눈다)
 // - 위: 보기 전환(숫자 / 콘텐츠) + 미리보기 너비 툴바 (기기 너비 버튼 + 슬라이더)
 // - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
 // - 컨테이너는 미리보기 폭이 속한 구간(@media)의 덮어쓰기까지 반영한 상태(resolveState)로 그린다.
 //   진짜 @media 는 브라우저 창 폭에 반응해서, 미리보기 폭에 맞춘 결과를 JS 로 계산한다.
-// - 박스를 클릭하면 선택(다시 클릭하면 해제) → ItemPanel 에서 개별 속성 조절
+// - 박스를 클릭하면 선택(다시 클릭하면 해제) → "박스" 탭(ItemPanel)에서 개별 속성 조절
 // - 보기 방식(숫자/콘텐츠)과 미리보기 폭은 출력 코드 / 편집 구간에도 쓰이므로 부모에게서 받는다.
 // - 기기 버튼(모바일 / 태블릿 / 데스크톱)은 @media 구간과 1:1 이라, 누르면 편집 구간도 같이 바뀐다.
 //   슬라이더는 폭만 바꾸고 편집 구간은 그대로 둔다.
@@ -90,7 +90,9 @@ export default function PreviewCanvas({
   const applied = breakpointAt(width);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
+      {/* 좁은 화면에서는 위에 고정되므로 제목을 빼서 높이를 아낀다. */}
+      <h2 className="hidden text-base font-semibold sm:block">미리보기</h2>
       <div className="flex flex-wrap items-center gap-2">
         <span className={TOOLBAR_GROUP_LABEL}>보기</span>
         {VIEW_OPTIONS.map((option) => (
@@ -155,19 +157,35 @@ export default function PreviewCanvas({
       </p>
 
       {/* 박스 클릭 기능은 눈에 안 띄어서, 미리보기 바로 위에서 알려준다. */}
-      <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-200">
-        {selectedIndex === null
-          ? "박스를 클릭하면 그 박스만 따로 바꿀 수 있습니다. (태그, 남는 공간 차지, 차지할 칸 수 등)"
-          : `박스 ${selectedIndex + 1}번 선택됨 · "박스 ${selectedIndex + 1}번만 따로 바꾸기" 패널에서 조절하세요. 다시 클릭하면 선택이 풀립니다.`}
+      {/* 좁은 화면에서는 미리보기가 고정되므로 괄호 속 부연 설명은 숨겨서 한 줄로 줄인다. */}
+      <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs text-sky-900 sm:py-2 sm:text-sm dark:border-sky-900 dark:bg-sky-950 dark:text-sky-200">
+        {selectedIndex === null ? (
+          <>
+            박스를 클릭하면 그 박스만 따로 바꿀 수 있습니다.
+            <span className="hidden sm:inline">
+              {" "}
+              (태그, 남는 공간 차지, 차지할 칸 수 등)
+            </span>
+          </>
+        ) : (
+          <>
+            박스 {selectedIndex + 1}번 선택됨 · &quot;박스&quot; 탭에서 조절하세요.
+            <span className="hidden sm:inline">
+              {" "}
+              다시 클릭하면 선택이 풀립니다.
+            </span>
+          </>
+        )}
       </p>
 
-      <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-3 sm:p-4 dark:border-zinc-700 dark:bg-zinc-900">
         <div
           className="mx-auto ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
           style={{ width }}
         >
+          {/* 좁은 화면에서는 미리보기가 위에 고정되므로 높이를 줄여 조작 패널 자리를 남긴다. */}
           <div
-            className="min-h-80"
+            className="min-h-48 sm:min-h-80"
             style={toContainerStyle(resolveState(state, applied))}
           >
             {Array.from({ length: state.boxCount }, (_, i) => {

@@ -1,5 +1,5 @@
 // src/components/layout-playground/ItemPanel.tsx
-// 왼쪽 아래 "선택한 박스" 개별 속성 패널.
+// 왼쪽 패널의 "박스" 탭 내용. 선택한 박스 하나만 따로 바꾸는 속성.
 // - 선택이 없으면 안내 문구만 표시
 // - Flex: flex-grow, align-self / Grid: grid-column, grid-row(span)
 // - 상태는 부모(LayoutPlayground)의 state.items 배열에서 선택한 칸만 바꾼다.
@@ -29,9 +29,9 @@ import type {
 } from "@/lib/layout/types";
 import RangeControl from "./controls/RangeControl";
 import SelectControl from "./controls/SelectControl";
+import ChoiceControl from "./controls/ChoiceControl";
 
-const PANEL_CLASS =
-  "flex flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950";
+const PANEL_CLASS = "flex flex-col gap-5";
 
 interface ItemPanelProps {
   state: PlaygroundState;
@@ -46,12 +46,12 @@ export default function ItemPanel({
 }: ItemPanelProps) {
   if (selectedIndex === null) {
     return (
-      <aside className={PANEL_CLASS}>
+      <div className={PANEL_CLASS}>
         <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
           미리보기에서 박스를 클릭하면 여기서 그 박스만 따로 바꿀 수 있습니다.
           (태그, 남는 공간 차지, 차지할 칸 수 등)
         </p>
-      </aside>
+      </div>
     );
   }
 
@@ -81,7 +81,7 @@ export default function ItemPanel({
   ) => updateItem((it) => ({ ...it, grid: { ...it.grid, [key]: value } }));
 
   return (
-    <aside className={PANEL_CLASS}>
+    <div className={PANEL_CLASS}>
       <h2 className="text-sm font-semibold">박스 {index + 1}번만 따로 바꾸기</h2>
       <SelectControl
         label="태그"
@@ -101,7 +101,7 @@ export default function ItemPanel({
             max={LIMITS.grow.max}
             onChange={(v) => setFlexItem("grow", v)}
           />
-          <SelectControl
+          <ChoiceControl
             label="이 박스만 교차축 정렬"
             code="align-self"
             hint={FLEX_ALIGN_SELF_HINTS[item.flex.alignSelf]}
@@ -112,7 +112,7 @@ export default function ItemPanel({
         </>
       ) : (
         <>
-          <SelectControl
+          <ChoiceControl
             label="차지할 열"
             code="grid-column"
             hint={GRID_ITEM_COLUMN_HINTS[column.kind]}
@@ -151,6 +151,6 @@ export default function ItemPanel({
       >
         이 박스만 처음 상태로
       </button>
-    </aside>
+    </div>
   );
 }
