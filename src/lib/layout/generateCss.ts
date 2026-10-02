@@ -1,18 +1,21 @@
 // src/lib/layout/generateCss.ts
 // 상태(PlaygroundState)를 받아 미리보기 style 과 출력 CSS 를 만드는 순수 함수 모음.
 // - toContainerStyle / toItemStyle: 미리보기에 넣을 React style 객체
-// - generateCss: 화면에 보여줄 CSS 코드 문자열 (컨테이너 + 바뀐 박스의 :nth-child 규칙)
-// - to...Template / to...Value: 위 두 쪽이 같이 쓰는 값 문자열
+// - generateCss: 화면에 보여줄 CSS 코드 문자열
+//   (컨테이너 + 구간별 @media + .item 공통 + 바뀐 박스의 :nth-child 규칙)
+// - appliedMediaLines: 출력 CSS 중 지금 미리보기 폭에 적용되는 @media 줄 번호
+// - to...Template / to...Value: 위 쪽들이 같이 쓰는 값 문자열
 // 모두 같은 상태에서 출발하므로 미리보기와 출력 코드가 항상 일치한다.
-// - // - generateCss: 화면에 보여줄 CSS 코드 문자열 (컨테이너 + .item 공통 + 바뀐 박스의 :nth-child 규칙)
 
 import type { CSSProperties } from "react";
+import { BREAKPOINT_MIN_WIDTH, MEDIA_BREAKPOINTS } from "./constants";
 import type {
   FlexItemSettings,
   GridColumns,
   GridItemColumn,
   GridItemSettings,
   GridRows,
+  MediaBreakpoint,
   PlaygroundState,
 } from "./types";
 
@@ -129,6 +132,57 @@ function containerLines(state: PlaygroundState): string[] {
   ];
 }
 
+// 값이 있을 때만 선언 줄 하나를 만든다. (덮어쓰지 않은 속성은 undefined → 줄 없음)
+function decl(property: string, value: string | undefined): string[] {
+  return value === undefined ? [] : [`  ${property}: ${value};`];
+}
+
+function px(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : `${value}px`;
+}
+
+// 한 구간에서 덮어쓴 속성만 선언 줄로 만든다. 현재 모드(flex / grid) 것만 출력한다.
+function overrideLines(state: PlaygroundState, bp: MediaBreakpoint): string[] {
+  const override = state.responsive[bp];
+
+  if (state.mode === "flex") {
+    const { direction, wrap, justifyContent, alignItems, gap } = override.flex;
+    return [
+      ...decl("flex-direction", direction),
+      ...decl("flex-wrap", wrap),
+      ...decl("justify-content", justifyContent),
+      ...decl("align-items", alignItems),
+      ...decl("gap", px(gap)),
+    ];
+  }
+
+  const { columns, rows, gap, justifyItems, alignItems } = override.grid;
+  return [
+    ...decl("grid-template-columns", columns && toColumnsTemplate(columns)),
+    // base 에서는 auto 면 줄을 생략하지만, 여기서는 앞 구간의 값을 되돌려야 하므로 none 을 적는다.
+    ...decl("grid-template-rows", rows && (toRowsTemplate(rows) ?? "none")),
+    ...decl("justify-items", justifyItems),
+    ...decl("align-items", alignItems),
+    ...decl("gap", px(gap)),
+  ];
+}
+
+// 덮어쓴 값이 있는 구간만 @media 블록을 만든다. 작은 폭 → 큰 폭 순서.
+function mediaLines(state: PlaygroundState): string[] {
+  return MEDIA_BREAKPOINTS.flatMap((bp) => {
+    const lines = overrideLines(state, bp);
+    if (lines.length === 0) return [];
+    return [
+      "",
+      `@media (min-width: ${BREAKPOINT_MIN_WIDTH[bp]}px) {`,
+      "  .container {",
+      ...lines.map((line) => `  ${line}`),
+      "  }",
+      "}",
+    ];
+  });
+}
+
 // 넘침 방지 옵션이 하나라도 켜져 있으면 모든 박스에 적용되는 .item 규칙을 만든다.
 function safeguardLines(state: PlaygroundState): string[] {
   const { minWidthZero, wrapAnywhere } = state.safeguards;
@@ -202,9 +256,25 @@ export function generateCss(
 ): string {
   return [
     ...containerLines(state),
+    // .container 기본 규칙보다 "뒤에" 있어야 덮어쓴다 (선택자 우선순위가 같으면 나중 규칙이 이김)
+    ...mediaLines(state),
     ...safeguardLines(state),
     ...linkRuleLines(state),
     ...itemRuleLines(state),
     ...(withContent ? contentRuleLines(state) : []),
   ].join("\n");
+}
+
+// 출력 CSS 에서 지금 폭(width)에 적용되는 @media 블록의 줄 번호(0부터).
+// 최상위 "}" 를 만나면 블록이 끝난 것 (@media 안의 닫는 줄은 "  }" 라 구분된다).
+export function appliedMediaLines(css: string, width: number): Set<number> {
+  const result = new Set<number>();
+  let inside = false;
+  css.split("\n").forEach((line, i) => {
+    const match = line.match(/^@media \(min-width: (\d+)px\) \{$/);
+    if (match) inside = width >= Number(match[1]);
+    if (inside) result.add(i);
+    if (line === "}") inside = false;
+  });
+  return result;
 }

@@ -3,14 +3,25 @@
 // - 위: 보기 전환(숫자 / 콘텐츠) + 미리보기 너비 툴바 (기기 너비 버튼 + 슬라이더)
 // - 아래: 정해진 너비의 프레임 안에 레이아웃 컨테이너와 박스를 그림
 // - 상태를 style 객체로 바꿔 컨테이너(toContainerStyle)와 각 박스(toItemStyle)에 적용
+// - 컨테이너는 미리보기 폭이 속한 구간(@media)의 덮어쓰기까지 반영한 상태(resolveState)로 그린다.
+//   진짜 @media 는 브라우저 창 폭에 반응해서, 미리보기 폭에 맞춘 결과를 JS 로 계산한다.
 // - 박스를 클릭하면 선택(다시 클릭하면 해제) → ItemPanel 에서 개별 속성 조절
-// - 보기 방식(숫자/콘텐츠)은 출력 코드에도 영향을 주므로 부모에게서 받는다.
+// - 보기 방식(숫자/콘텐츠)과 미리보기 폭은 출력 코드 / 편집 구간에도 쓰이므로 부모에게서 받는다.
+// - 기기 버튼(모바일 / 태블릿 / 데스크톱)은 @media 구간과 1:1 이라, 누르면 편집 구간도 같이 바뀐다.
+//   슬라이더는 폭만 바꾸고 편집 구간은 그대로 둔다.
 
-import { useState } from "react";
-import { DEFAULT_ITEM_TAG, LIMITS } from "@/lib/layout/constants";
+import {
+  BREAKPOINT_LABELS,
+  BREAKPOINT_PREVIEW_WIDTH,
+  BREAKPOINTS,
+  DEFAULT_ITEM_TAG,
+  LIMITS,
+} from "@/lib/layout/constants";
 import { toContainerStyle, toItemStyle } from "@/lib/layout/generateCss";
+import { breakpointAt, resolveState } from "@/lib/layout/responsive";
 import type {
   BoxContent,
+  Breakpoint,
   ItemTag,
   PlaygroundState,
   PreviewView,
@@ -32,12 +43,13 @@ const BOX_COLORS = [
 // 숫자 모드에서는 높이가 들쭉날쭉해야 align-items 차이가 보인다.
 const BOX_MIN_HEIGHTS = [56, 88, 64, 104, 72, 96, 60, 80];
 
-// 미리보기 기기 너비 프리셋(px), 데스크톱(1280)이 칸보다 넓으면 프레임 안에서 가로 스크롤 된다.
-const VIEWPORT_PRESETS = [
-  { label: "모바일", width: 375 },
-  { label: "태블릿", width: 768 },
-  { label: "데스크톱", width: 1280 },
-] as const;
+// 기기 버튼 이름. 폭은 BREAKPOINT_PREVIEW_WIDTH (375 / 768 / 1280) 를 쓴다.
+// 데스크톱(1280)이 칸보다 넓으면 프레임 안에서 가로 스크롤 된다.
+const DEVICE_LABELS: Record<Breakpoint, string> = {
+  base: "모바일",
+  md: "태블릿",
+  lg: "데스크톱",
+};
 
 const VIEW_OPTIONS = [
   { value: "number", label: "숫자" },
@@ -57,6 +69,9 @@ interface PreviewCanvasProps {
   onSelect: (index: number | null) => void;
   view: PreviewView;
   onViewChange: (view: PreviewView) => void;
+  width: number;
+  onWidthChange: (width: number) => void;
+  onDevicePick: (bp: Breakpoint) => void;
 }
 
 export default function PreviewCanvas({
@@ -65,8 +80,11 @@ export default function PreviewCanvas({
   onSelect,
   view,
   onViewChange,
+  width,
+  onWidthChange,
+  onDevicePick,
 }: PreviewCanvasProps) {
-  const [width, setWidth] = useState<number>(768);
+  const applied = breakpointAt(width);
 
   return (
     <div className="flex flex-col gap-3">
@@ -88,24 +106,27 @@ export default function PreviewCanvas({
           aria-hidden
         />
 
-        {VIEWPORT_PRESETS.map((preset) => (
-          <button
-            key={preset.label}
-            type="button"
-            aria-pressed={width === preset.width}
-            onClick={() => setWidth(preset.width)}
-            className={`${TOOLBAR_BUTTON} ${width === preset.width ? TOOLBAR_ON : TOOLBAR_OFF}`}
-          >
-            {preset.label} {preset.width}
-          </button>
-        ))}
+        {BREAKPOINTS.map((bp) => {
+          const deviceWidth = BREAKPOINT_PREVIEW_WIDTH[bp];
+          return (
+            <button
+              key={bp}
+              type="button"
+              aria-pressed={width === deviceWidth}
+              onClick={() => onDevicePick(bp)}
+              className={`${TOOLBAR_BUTTON} ${width === deviceWidth ? TOOLBAR_ON : TOOLBAR_OFF}`}
+            >
+              {DEVICE_LABELS[bp]} {deviceWidth}
+            </button>
+          );
+        })}
         <input
           type="range"
           aria-label="미리보기 너비"
           min={LIMITS.viewport.min}
           max={LIMITS.viewport.max}
           value={width}
-          onChange={(e) => setWidth(Number(e.target.value))}
+          onChange={(e) => onWidthChange(Number(e.target.value))}
           className="min-w-32 flex-1 accent-zinc-800 dark:accent-zinc-200"
         />
         <span className="w-14 text-right font-mono text-xs text-zinc-500">
@@ -113,12 +134,30 @@ export default function PreviewCanvas({
         </span>
       </div>
 
+      <p className="text-xs text-zinc-500">
+        이 폭에 적용되는 구간:{" "}
+        <span
+          className={
+            applied === "base"
+              ? "font-medium text-zinc-700 dark:text-zinc-300"
+              : "font-medium text-sky-700 dark:text-sky-400"
+          }
+        >
+          {applied === "base"
+            ? "기본 (미디어쿼리 없음)"
+            : `@media ${BREAKPOINT_LABELS[applied]}`}
+        </span>
+      </p>
+
       <div className="overflow-x-auto rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
         <div
           className="mx-auto ring-1 ring-zinc-300 transition-[width] duration-200 dark:ring-zinc-700"
           style={{ width }}
         >
-          <div className="min-h-80" style={toContainerStyle(state)}>
+          <div
+            className="min-h-80"
+            style={toContainerStyle(resolveState(state, applied))}
+          >
             {Array.from({ length: state.boxCount }, (_, i) => {
               const selected = i === selectedIndex;
               const color = BOX_COLORS[i % BOX_COLORS.length];

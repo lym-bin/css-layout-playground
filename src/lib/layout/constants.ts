@@ -3,7 +3,7 @@
 // - 드롭다운 선택지 배열(type은 런타임에 사라지므로 실제 값 배열이 필요)
 // - 슬라이더 최솟값/최댓값 (LIMITS)
 // - 초기 상태 (INITIAL_STATE) -> useState 시작값 + Reset 버튼에서 사용
-// - 미디어쿼리 구간 (BREAKPOINTS, BREAKPOINT_MIN_WIDTH, BREAKPOINT_LABELS)
+// - 미디어쿼리 구간 (BREAKPOINTS, BREAKPOINT_MIN_WIDTH, BREAKPOINT_LABELS, BREAKPOINT_PREVIEW_WIDTH)
 
 // 타입만 가져오기
 import type {
@@ -170,6 +170,7 @@ export const BREAKPOINTS: readonly Breakpoint[] = ["base", "md", "lg"];
 export const MEDIA_BREAKPOINTS: readonly MediaBreakpoint[] = BREAKPOINTS.filter(
   (bp): bp is MediaBreakpoint => bp !== "base",
 );
+
 // 각 구간이 시작되는 폭, @media (min-width: ...)에 그대로 들어간다.
 export const BREAKPOINT_MIN_WIDTH: Record<MediaBreakpoint, number> = {
   md: 768,
@@ -180,6 +181,14 @@ export const BREAKPOINT_LABELS: Record<Breakpoint, string> = {
   base: "기본",
   md: "768px 이상",
   lg: "1024px 이상",
+};
+
+// 편집 구간 탭을 누르면 미리보기를 이 폭으로 맞춰서, 그 구간이 바로 보이게 한다.
+// (미리보기 너비 버튼의 모바일 / 태블릿 / 데스크톱과 같은 값)
+export const BREAKPOINT_PREVIEW_WIDTH: Record<Breakpoint, number> = {
+  base: 375,
+  md: 768,
+  lg: 1280,
 };
 
 // 아무것도 덮어쓰지 않은 구간
